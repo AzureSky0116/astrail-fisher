@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "astrail-fisher",
+  "version": "${version}",
+  "name": "Astrail Fisher",
+  "description": "Auto-fishing module extracted from the Astrail client (Minecraft 26.2).",
+  "icon": "assets/astrail-fisher/icon.png",
+  "authors": ["Astrail"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.astrail.client.AstrailClient"
+    ]
+  },
+  "mixins": [
+    "astrail.client.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api": ">=0.154.2+26.2",
+    "minecraft": "~26.2",
+    "java": ">=25"
+  }
+}
