@@ -3,7 +3,7 @@
   "id": "astrail-fisher",
   "version": "${version}",
   "name": "Astrail Fisher",
-  "description": "Auto-fishing module extracted from the Astrail client (Minecraft 26.2).",
+  "description": "Client-side auto-fishing macro designed for Hypixel SkyBlock (Minecraft 26.2).",
   "icon": "assets/astrail-fisher/icon.png",
   "authors": ["Astrail"],
   "license": "MIT",

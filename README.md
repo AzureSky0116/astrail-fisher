@@ -1,258 +1,156 @@
-# 🎣 Astrail Fisher
+<h1 align="center">🎣 Astrail Fisher</h1>
 
-An AFK-friendly **auto-fishing** macro extracted from the *Astrail client*,
-tuned for **SkyBlock-style** servers (Minecraft **26.2**, **Fabric**, client-side only).
-
-> 从 *Astrail 客户端* 中提取的 **自动钓鱼** 宏，专为空岛类（SkyBlock）服务器优化。
-> 纯客户端功能，不影响服务器数据；Minecraft **26.2** · **Fabric**。
-
-![Minecraft](https://img.shields.io/badge/Minecraft-26.2-44677a) ![Fabric](https://img.shields.io/badge/Fabric%20API-0.154.2%2B26.2-dbd0b4) ![Java](https://img.shields.io/badge/Java-25%2B-f89820) ![License](https://img.shields.io/badge/License-MIT-green)
+<p align="center">
+  <a href="#简体中文"><b>简体中文</b></a> | <a href="#english">English</a>
+</p>
 
 ---
 
-## Table of Contents 目录
+## 简体中文
 
-1. [Overview · 简介](#overview--简介)
-2. [Features · 功能](#features--功能)
-3. [Requirements · 运行要求](#requirements--运行要求)
-4. [Installation · 安装](#installation--安装)
-5. [Usage · 使用方法](#usage--使用方法)
-6. [Configuration · 配置详解](#configuration--配置详解)
-7. [How It Works · 工作原理](#how-it-works--工作原理)
-8. [SkyBlock Tips · 空岛钓鱼建议](#skyblock-tips--空岛钓鱼建议)
-9. [FAQ · 常见问题](#faq--常见问题)
-10. [Building From Source · 源码构建](#building-from-source--源码构建)
-11. [Files · 文件说明](#files--文件说明)
-12. [License · 许可](#license--许可)
+> 一款专为 **Hypixel 空岛（SkyBlock）** 打造的 **自动钓鱼** 模组。
+> 拿上钓竿，剩下的交给它——挂机也能把鱼箱装满。
 
----
+Astrail Fisher 要做的事很简单：**你拿着钓鱼竿，它接管其余所有步骤**。
+钩子消失就自动抛竿，浮标一亮起「!!!」就自动收竿，随后自动把镜头校正回水面、干净利落地再抛出去。
+全程循环，不需要你按下任何键。
 
-## Overview · 简介
+它也不是一台只会「右键-右键-右键」的连点机器：
+内置了几组**拟人化细节**——收竿后随机小碎步、镜头轻微摆动、移动时蹲下放缓脚步——让挂机行为看起来更像真人。
 
-Astrail Fisher keeps your fishing rod working **while you are AFK**: it casts when your
-bobber is missing, reels the moment the server shows a bite marker (**「!!!」**, the marker
-most SkyBlock servers already render next to the bobber), then recasts. On top of that it
-adds **humanization** touches — short random footwork after a catch, subtle camera drift
-and sneaking — so an idle session does not look like a robot clicking continuously.
+- **纯客户端**：不读游戏内存、不伪装发包、不修改服务器数据
+- **开箱即用**：默认配置就是为 Hypixel 空岛钓鱼优化的
+- **一个页面管所有**：全部设置集中在单一配置页，没有层层叠叠的菜单
 
-本 Mod 让你**挂机钓鱼**：钩子不见了就自动抛竿，浮标旁边出现服务器显示的咬钩标记
-（「!!!」）就自动收竿，随后自动瞄准水面再抛。
-除了自动循环，它还带几项**拟人化**细节——收竿后随机小碎步、轻微镜头摆动、潜行，
-让挂机看起来不像一台机器在疯狂连点。
+### ✨ 功能一览
 
-## Features · 功能
+- **全自动循环** —— 无钩自抛 → 「!!!」咬钩自收 → 瞄水再抛，直到你关闭
+- **按「!!!」判定收竿时机** —— 直接利用 Hypixel 浮标自带的咬钩提示，时机准确
+- **拟人化** —— 随机移动、步间潜行、全程潜行、镜头微晃
+- **自动重置** —— 钩子卡岸、卡石或被服务器吞掉，约 20 秒后自动收竿重抛
+- **自动攻击（可选）** —— 钓出海兽（Sea Creatures）时自动切至武器格并使用技能
 
-- **Auto cast / reel / recast loop** — fully hands-free once a rod is in your main hand.
-- **Bite detection via the 「!!!」 marker** — no pixel-peeping, no server-side hooks.
-- **Humanization** — Random Movement, Sneak While Moving, Always Sneak, Subtle Rotation.
-- **Auto Reset** — recovers hooks stuck on land or ones the server has dropped.
-- **Auto Attack (optional)** — fights back when a SkyBlock sea creature is caught.
+### 🛠 运行要求
 
-- **自动抛竿 / 收竿 / 再抛** —— 主手拿上钓鱼竿之后完全不用管。
-- **按「!!!」咬钩标记判定收竿时机** —— 无需像素识别，不吃服务器粒子。
-- **拟人化** —— 随机移动、移动潜行、全程潜行、轻微镜头转动。
-- **自动重置** —— 钩子卡岸 / 卡石头或被服务器吞掉时自动收回重抛。
-- **自动攻击（可选）** —— 钓出空岛海怪时自动切武器按技能清怪。
+| 依赖 | 版本 |
+| --- | --- |
+| Minecraft | 26.2（客户端） |
+| Fabric Loader | ≥ 0.19.3 |
+| Fabric API | ≥ 0.154.2+26.2 |
+| Java | ≥ 25 |
 
-## Requirements · 运行要求
+### 📦 安装
 
-- Minecraft **26.2**（客户端）。
-- Fabric Loader **0.19.3+**；Fabric API **0.154.2+26.2**（已在模组清单中声明）。
-- Java **25+**，与 Fabric 客户端环境一致。
+1. 从本仓库 **Releases** 下载 `astrail-fisher-0.1.0.jar`；
+2. 把 jar 放进 `.minecraft/mods/` 文件夹（需要 Fabric 环境）；
+3. 启动游戏，进入 Hypixel 或任意存档即可。
 
-**Important:** the macro relies on the server-side bite marker **「!!!」** to know when to
-reel. If your server does not render that marker, the macro cannot detect bites (see
-[FAQ](#faq--常见问题)).
+### 🚀 快速上手
 
-> **注意**：收竿时机依赖服务器在浮标旁显示的「!!!」咬钩标记。如果服务器不显示或
-> 魔改了标记，本模组无法识别咬钩（详见 [FAQ](#faq--常见问题)）。
+1. **主手拿钓鱼竿**（快捷栏当前高亮的格子）；
+2. 按 **右 Shift**（默认）打开「自动钓鱼」配置页；
+3. 站到钓鱼点，**面向水面**，按 `ESC` 关闭界面——自动钓鱼立刻开始；
+4. 想停随时再按一次快捷键即可。
 
-## Installation · 安装
+> 开关键可在「**选项 → 控制 → *Astrail Fisher***」中改成任意按键。
 
-- 从 **Releases** 下载最新的 `astrail-fisher-*.jar`，或按下方步骤自行编译。
-- 把 `astrail-fisher-*.jar` 放进 `.minecraft/mods/`（Fabric 环境）。
-- 启动游戏，进入任意存档 / 服务器即可。
+### ⚙️ 配置详解
 
-## Usage · 使用方法
+所有配置均为**客户端本地设置**，改动后自动写入 `config/astrail/config.json`，
+无需手动编辑。下表是速查，下面是每项的详细解读。
 
-1. 把钓鱼竿放到**主手**（快捷栏当前选中的格子）。
-2. 按默认按键【右 Shift】打开**自动钓鱼界面**（本 Mod 只有这一个配置页）。
-3. 按需调整开关（默认配置即可直接使用）。
-4. 面向水面站好钓鱼点，按 `ESC` 关闭界面 —— 自动钓鱼立即开始。
-
-1. Put the fishing rod in your **main hand**.
-2. Press **Right Shift** (default) to open the **Auto Fishing GUI**.
-3. Toggle what you need (defaults are fine for most servers).
-4. Stand at your fishing spot facing water, press `ESC` — fishing starts right away.
-
-### Controls · 按键
-
-| Action | Default | How to change |
-| --- | --- | --- |
-| Open Auto Fishing GUI | Right Shift | Options → Controls → *Astrail Fisher* category |
-| 打开自动钓鱼界面 | 右 Shift | 选项 → 控制 → *Astrail Fisher* 分类 |
-
-All options live on that one page — nothing hidden in other menus.
-
-> 所有配置都在这一页，没有隐藏的子菜单。
-
----
-
-## Configuration · 配置详解
-
-Every option is a **client-side** preference, saved automatically to
-`config/astrail/config.json`(inside the game directory). Defaults are tuned for AFK
-fishing on a normal SkyBlock island.
-
-> 所有配置均为**客户端本地配置**，修改后自动保存到 `config/astrail/config.json`。
-> 默认值针对普通空岛挂机钓鱼优化，开箱即可用。
-
-| # | Setting | Default | Range | 一句话说明 |
+| # | 设置 | 默认 | 范围 | 一句话说明 |
 | --- | --- | --- | --- | --- |
-| 1 | Random Movement 随机移动 | ON | – | 收竿后向安全方向随机走一小步再退回，模拟真人 |
-| 2 | Sneak While Moving 移动时潜行 | ON | – | 移动碎步期间自动潜行，动作更轻 |
-| 3 | Always Sneak 全程潜行 | ON | – | 全程潜行，减少被打偏/被动位移 |
-| 4 | Auto Reset 自动重置 | ON | – | 钩子卡住/消失约 20 秒后自动收竿重抛 |
-| 5 | Throw Delay 抛竿延迟 | 10 tick | 1~30 tick | 收竿后多久抛下一竿（1 tick = 1/20 秒） |
-| 6 | Subtle Rotation 轻微转动 | ON | – | 收竿后镜头轻微摆动再回正 |
-| 7 | Auto Attack 自动攻击 | OFF | – | 钓出怪时自动切武器按技能（需配合 8） |
-| 8 | Weapon Slot 武器槽位 | 1 | 1–9 | 武器所在的快捷栏格子序号 |
+| 1 | 随机移动 Random Movement | 开 | – | 收竿后朝安全方向随机小走一步，模拟真人 |
+| 2 | 移动时潜行 Sneak While Moving | 开 | – | 小步移动时自动蹲潜，脚步更轻 |
+| 3 | 全程潜行 Always Sneak | 开 | – | 整个钓鱼过程持续潜行，防轻微位移 |
+| 4 | 自动重置 Auto Reset | 开 | – | 钩子卡住/消失约 20 秒后自动收竿重抛 |
+| 5 | 抛竿延迟 Throw Delay | 10 tick | 1~30 tick | 收竿后隔多久抛下一竿（1 tick = 1/20 秒） |
+| 6 | 轻微转动 Subtle Rotation | 开 | – | 收竿后镜头轻微摆动再回正 |
+| 7 | 自动攻击 Auto Attack | 关 | – | 钓出海兽时自动切武器用技能（需配合 8） |
+| 8 | 武器槽位 Weapon Slot | 1 | 1~9 | 武器所在快捷栏格子序号 |
 
-### 1) Random Movement 随机移动
+**1）随机移动 Random Movement（默认：开）**
 
-**What it does**: after every successful catch, the player takes one short random step
-sideways or backward, sometimes followed by a step back — like a real player adjusting
-their footing between casts.
+收竿成功后，角色会朝「安全方向」随机走一小步——左右微挪或后退半步，偶尔再退回原位，
+看起来就像真人在换重心。它绝不是乱走：每次移动前都会先探测脚下及四周是不是实心地面，
+如果一个方向都出不去（比如站在 1×1 水沿），就干脆原地不动。**不踩空、不自动跳**，
+放心挂着。
 
-**Safety**: before pressing a key the macro probes the ground ahead (footprint and body
-clearance). If no direction is safe — e.g. a one-block ledge over water — the player
-plainly **stays still**. It never steps into air or water, and it never auto-jumps.
+**2）移动时潜行 Sneak While Moving（默认：开）**
+小步移动的那一两 tick 自动蹲潜，脚步更轻、动作更自然。不影响移动本身，建议保持开启。
 
-**中文**：每次成功收竿后，向左右/后方随机挪一小步，偶尔退回原位，像真人调整站姿。
-移动前会探测脚下实地；找不到安全方向就**原地不动**——绝不踩空、绝不自动跳跃。
+**3）全程潜行 Always Sneak（默认：开）**
+整个钓鱼过程持续按下潜行，防止被海之击退、被其他玩家无意推动或在平台边缘产生漂移。若所在
+服务器对长时间潜行有专门的检测或惩罚，可以关掉。
 
-> On platforms wider than ~3 blocks this reads as a natural shuffle; on a 1×1 ledge the
-> function keeps still, which is exactly the safe choice.
+**4）自动重置 Auto Reset（默认：开）**
+钩子已经存在约 20 秒却没有任何「咬钩标记」——多半是钩子挂在了岸边的石头上，或是服务器吞了
+浮标——此时自动收竿并重新抛投，不用你手动干预。建议保持开启。
 
-> 小提示：3 格以上的平台会产生自然的碎步；1×1 岩沿上保持不动，这正是最安全的方案。
+**5）抛竿延迟 Throw Delay（默认：10 tick，可调 1~30）**
+收竿与下一竿之间的等待时间，单位 tick（1 tick = 1/20 秒）。网络波动较大的环境下，稍大的值
+（如 15~20）可以避免系统把刚抛出的浮标又收回去；网速好、想要更快节奏可以调小。默认 10 已能
+满足大多数场景。
 
-### 2) Sneak While Moving（移动时潜行）
+**6）轻微转动 Subtle Rotation（默认：开）**
+每次收竿后，镜头会在水平/垂直方向做一个 1~2° 的小幅晃动再回正，模仿真人握鼠标时手部抖动的
+自然感。纯外观向抖动，不影响收竿判定，随时可关。
 
-During a movement step the macro briefly holds sneak: quieter footfalls, no sprint
-flicker. Recommended to stay ON.
-
-移动碎步期间自动潜行：脚步更轻，动作更真实。建议保持 ON。
-
-### 3) Always Sneak（全程潜行）
-
-The client holds sneak for the entire fishing session — a little extra protection against
-knockback, being pushed by other players, or a platform that shifts under you. Switch it
-off only if your server penalizes long-term sneaking.
-
-全程潜行直到关闭自动钓鱼——减少小击退、被人推动、平台位移的影响。除非服务器对
-潜行有惩罚，否则保持 ON。
-
-### 4) Auto Reset（自动重置）
-
-If a hook stays in the world for about **20 seconds** without producing a bite marker,
-the macro reels it and casts again. It handles hooks that landed on the bank or vanished
-bobbers, so you do not need to police the pond. Keep it ON.
-
-钩子存在约 **20 秒** 仍无咬钩标记，就自动收回并重抛，解决「钩子挂岸」和「服务器吞
-浮标」的情况。建议保持 ON。
-
-### 5) Throw Delay（抛竿延迟）
-
-Ticks between the reel and the next cast (1 tick = 1/20 s). Larger values give a laggy
-connection more time to register your throw (no throw-and-instant-reel loops); smaller
-values give a faster rhythm.
-
-单位 tick（1/20 秒）。数值越大，高延迟下越稳；数值越小，抛竿节奏越快。
-默认 10；出现「抛出立刻收回」时调到 15~20。
-
-### 6) Subtle Rotation（轻微转动）
-
-After each catch the camera drifts gently (1–2°) and returns, mimicking the mouse wobble
-of a human player. Cosmetic only — toggle it whenever you like.
-
-收竿后镜头轻微晃动再回正（约 1~2°）。纯视觉优化，不影响钓鱼结果。
-
-### 7) Auto Attack（自动攻击）+ 8) Weapon Slot（武器槽位）
-
-For SkyBlock islands where catches spawn **sea creatures**: when a newly-caught monster
-appears, the macro swaps the hotbar to the configured slot, uses the weapon ability, then
-goes back to fishing. `Weapon Slot` is the hotbar index (1–9, leftmost = 1).
-
-针对钓出海洋生物的空岛服：钓起怪物后自动切到指定武器格并使用技能，清完怪再继续
-钓鱼。`武器槽位` 填武器所在的快捷栏序号（1–9，最左为 1）。
-
-> Keep Auto Attack **OFF** on servers without sea-monster mechanics — otherwise it will
-> keep swapping your hotbar for nothing.
-
-> 没有海怪机制的服务器请保持 OFF，避免频繁切换装备。
+**7）自动攻击 Auto Attack（默认：关）+ 8）武器槽位 Weapon Slot（默认：1）**
+Hypixel 空岛的钓鱼会「钓出」海兽（Sea Creature）。开启后，每次上钩新生物时模组会自动把快捷栏
+切到**武器槽位**指定的格子、使用武器技能，再在清完怪后切回钓竿继续钓鱼。
+仅在你需要处理海兽保护时开启；普通水面钓鱼请保持关闭，避免频繁切装。
 
 ---
 
-## How It Works · 工作原理
+### 🔄 工作原理
 
-（背景：游戏 tick，1 tick = 1/20 秒）
+（时间单位：游戏 tick，1 tick = 1/20 秒）
 
-1. **空闲自动抛竿**：主手为钓鱼竿、水中无钩子、未排队重抛时，约 **14 tick（0.7s）**
-   自动抛竿；两次空闲抛之间至少间隔 40 tick，避免高 ping 下把刚丢出的钩又收回。
-2. **咬钩判定**：抛竿后先等 **6 tick** 的「浮标预热」窗口（忽略上一次咬钩的残留
-   标记），之后浮标周围 **3 格** 内出现名为「!!!」的实体标记即自动收竿（同一标记
-   只收一次）。
-3. **重抛流程**：等拟人动作结束 → 恢复收竿时的镜头 → 确认前方水体无遮挡 → 抛下一竿；
-   若水面异常无法确认，最多等 **60 tick** 后强行抛出，避免水池干涸卡死循环。
-4. **自动重置**：钩子 400 tick（20 秒）无咬钩 → 自动收竿并重抛（第 4 项设置）。
-
-**In English:**
-
-1. **Auto cast** — 14 ticks (0.7 s) after noticing there is no hook; 40-tick minimum gap
-   between idle casts; a 6-tick warm-up window ignores stale markers from previous catches.
-2. **Bite detection** — the first 「!!!」-named entity within 3 blocks of the bobber
-   triggers a reel; each marker is reeled only once.
-3. **Recast wait** — finishes the humanized motion, restores the aim that caught the fish,
-   confirms a clear water line, then casts again. The hold is capped at 60 ticks so a
-   drained pond cannot stall the loop forever.
-4. **Auto Reset** — a hook stuck for 20 seconds is pulled and recast (setting #4).
+1. **空闲抛竿**：主手是钓竿、水里没有自己的钩子、也未排队重抛时，约 **14 tick（0.7 秒）**
+   自动抛竿；两次空闲抛竿之间至少间隔 40 tick，防止刚抛出的新钩被自己收掉。
+2. **咬钩判定**：抛竿后先等待 **6 tick** 的浮标「预热期」（过滤上次收竿残留的标记），
+   之后浮标附近 **3 格** 内出现「!!!」标记即立刻收竿（同一标记只结算一次）。
+3. **重抛流程**：先等拟人动作结束 → 恢复收竿时镜头角度 → 确认视野内水面无遮挡 → 抛下一竿；
+   若确认失败会临时白等，最多 **60 tick** 后无条件抛出，防止池塘干涸卡死整个循环。
+4. **自动重置**：钩子 400 tick（20 秒）没有咬钩信号，自动收竿并重新抛投（受第 4 项设置开关控制）。
 
 ---
 
-## SkyBlock Tips · 空岛钓鱼建议
+### 🐠 Hypixel 空岛钓鱼小贴士
 
-- **站位**：站在正对水面的实心平台上；平台别太窄，给「随机移动」留一点可选方向。
-- **附魔**：*鱼饵 Lure* 让鱼更快咬竿（每级近似 -5 秒等待）；*海之眷顾 Luck of the Sea*
-  提升宝藏/高品质鱼获；具体数值以服务器 Wiki 为准。
-- **海怪**：服务器钓出来是实体怪物时，搭配 `Auto Attack` + `Weapon Slot` 使用。
-- **机制差异**：各空岛服的「!!!」标记、掉落、怪物技能都不同，以**对应服务器的
-  SkyBlock Wiki** 为准。通用参考：[Minecraft Wiki · Fishing](https://minecraft.wiki/w/Fishing)。
-
----
-
-## FAQ · 常见问题
-
-**Q1: 打开了但完全没反应？**
-A：① 主手必须是钓鱼竿；② 面前要有看得见的水；③ 界面开关为 ON。
-
-**Q1 (EN): enabled but nothing happens?**
-A: rod in main hand, facing open water, module toggled ON.
-
-**Q2: 从来不自动收竿？**
-A：判竿依赖服务器「!!!」标记；服务器不显示就识别不了，这是机制限制。
-
-**Q3: 会不会自动跳/走进水？**
-A：不会。随机移动有地面探测，找不到安全方向就原地不动；自动跳跃已移除。
-
-**Q4: 配置保存在哪？**
-A：`config/astrail/config.json`（游戏目录，界面内改动自动保存）。不推荐手改。
-
-**Q5: 抛出又立刻被收回？**
-A：把 Throw Delay 调大（如 15~20），或等网络稳定后再挂机。
+- **咬钩信号**：Hypixel 空岛的鱼竿浮标在可收竿时会冒「!!!」提示，本模组正是靠这个信号判定
+  收竿时机的，所以请确保游戏画面里能够看到浮标（不要故意把视野拉到看不到的地方）。
+- **站位**：站在能正对水面的实心平台上，且周围留有空间；平台越小，「随机移动」越倾向于
+  原地不动——这是安全设计。
+- **附魔与掉落**：鱼竿附魔（鱼饵 Lure、海之眷顾 Luck of the Sea 等）的具体收益，以及海兽战斗规则，请以 **Hypixel
+  SkyBlock Wiki** 为准：[hypixel-skyblock.fandom.com/wiki/Fishing](https://hypixel-skyblock.fandom.com/wiki/Fishing)。
+- **自动攻击**：只有你的钓点会出「海兽」才需要开启 `Auto Attack`；普通钓鱼点请保持关闭。
 
 ---
 
-## Building From Source · 源码构建
+### ❓ 常见问题（FAQ）
+
+**Q1：开了却没反应？**
+① 主手必须是钓鱼竿；② 面前要有可见的水面；③ 配置页开关均为开启。
+
+**Q2：从不自动收竿？**
+说明服务器没有弹出「!!!」标记（极少数自定义服务器会移除该提示），本模组依赖它判定，无法兼容
+此类服务器。
+
+**Q3：会跳进水里吗？**
+不会。随机移动带有逐格地面探测，找不到安全落点就原地不动；内置的自动跳跃功能已移除。
+
+**Q4：配置保存在哪？**
+游戏目录下 `config/astrail/config.json`，界面里的改动会自动同步落盘。
+
+**Q5：抛出后立刻又被收回？**
+把「抛竿延迟 Throw Delay」调大（建议 15~20 tick），或等网络稳定后再挂机。
+
+---
+
+### 🏗 构建（开发者）
 
 ```bash
 # Windows
@@ -261,21 +159,191 @@ gradlew.bat build --console=plain -q
 ./gradlew build --console=plain -q
 ```
 
-产物：`build/libs/astrail-fisher-*.jar`，放进 `mods/` 即可。
+产物 `build/libs/astrail-fisher-0.1.0.jar`，丢进 `mods/` 即可。
 
-## Files · 文件说明
+### 📁 项目结构
 
-- `src/main/java/.../feature/macro/fishing/AutoFishModule.java` — 自动钓鱼核心逻辑。
-- `src/main/java/.../platform/minecraft/AstrailKeybinds.java` — GUI 打开按键（默认右 Shift，可在游戏内按键设置修改）。
-- `src/main/java/.../mixin/KeyboardInputMixin.java` — 把模拟按键合入原版输入，避免卡键。
-- `使用说明.txt` — 面向普通玩家的中文快速手册（和 README 互补）。
+- `src/main/java/.../feature/macro/fishing/AutoFishModule.java` —— 自动钓鱼核心逻辑（状态机）
+- `src/main/java/.../platform/minecraft/AstrailKeybinds.java` —— 打开配置页的按键绑定
+- `src/main/java/.../mixin/KeyboardInputMixin.java` —— 将模组的模拟按键注入原版移动输入
+- `使用说明.txt` —— 面向普通玩家的一页纸中文手册
+
+### 🔏 许可
+
+代码以 **MIT** 协议开源（见 [LICENSE](LICENSE)）；内置字体资源遵循其各自许可
+（见 `assets/astrail/font/inter/ofl.txt`）。
 
 ---
 
-## License · 许可
+## English
 
-The code is licensed under the **MIT License**, see [LICENSE](LICENSE). Bundled fonts
-keep their own licenses (see `assets/astrail/font/inter/ofl.txt`).
+<p align="center">
+  <a href="#简体中文">简体中文</a> · <b>English</b>
+</p>
 
-> 说明：Astrail Fisher 是 Astrail 客户端中「自动钓鱼」模块的独立实现子集；「!!!」咬钩
-> 标记属于服务器侧机制，本 Mod 只负责观察标记、收竿、抛竿，不修改任何服务器数据。
+An **auto-fishing mod built specifically for Hypixel SkyBlock** (Minecraft 26.2, Fabric).
+Hold a rod, and it does the rest.
+
+Astrail Fisher handles the entire fishing loop for you: it casts when your hook is gone,
+reels the instant the bobber raises the signature **「!!!」** bite prompt, re-aims at the
+water and casts again — no key presses, no babysitting.
+
+It is not a blind right-click bot either. A few **humanization** details — a short random
+footstep after each catch, a subtle camera wobble, crouching while stepping — keep the
+session looking like an actual player instead of a machine.
+
+- **100% client-side** — no memory reads, no fabricated packets, no server data touched
+- **Defaults tuned for Hypixel SkyBlock fishing** — works out of the box
+- **Single-page settings** — every option lives on one screen, nothing buried
+
+### ✨ Features
+
+- **Full auto loop**: cast → reel on bite → re-aim → recast, forever
+- **「!!!」 bite detection**: uses Hypixel's native bobber prompt for instant, precise timing
+- **Humanization**: random movement, sneaking while stepping, always-sneak, subtle rotation
+- **Auto Reset**: hooks that get stuck or vanish are pulled in and recast after ~20 s
+- **Auto Attack (optional)**: when a Sea Creature bites, swap to your weapon slot and use
+  its ability, then return to fishing
+
+### 🛠 Requirements
+
+| Dependency | Version |
+| --- | --- |
+| Minecraft | 26.2 (client) |
+| Fabric Loader | ≥ 0.19.3 |
+| Fabric API | ≥ 0.154.2+26.2 |
+| Java | ≥ 25 |
+
+### 📦 Installation
+
+1. Grab `astrail-fisher-0.1.0.jar` from **Releases**.
+2. Drop it into `.minecraft/mods/` (Fabric setup required).
+3. Launch the game and join Hypixel (or any world).
+
+### 🚀 Quick Start
+
+1. Equip the fishing rod in your **main hand**.
+2. Press **Right Shift** (default) to open the Auto Fishing page.
+3. Stand at your spot facing water, press `ESC` — fishing begins immediately.
+4. Press the same key again whenever you want to stop.
+
+> Rebind it anytime under **Options → Controls → Astrail Fisher**.
+
+### ⚙️ Configuration
+
+All options are client-side and persist automatically to `config/astrail/config.json` —
+no manual editing needed. Use the table as a cheat-sheet; details follow.
+
+| # | Setting | Default | Range | What it does |
+| --- | --- | --- | --- | --- |
+| 1 | Random Movement | ON | – | Small random step in a safe direction after each catch |
+| 2 | Sneak While Moving | ON | – | crouch briefly while stepping, quieter and more human |
+| 3 | Always Sneak | ON | – | keep the catch steady, resistant to small nudges |
+| 4 | Auto Reset | ON | – | reel & recast a hook stuck or missing for ~20 s |
+| 5 | Throw Delay | 10 ticks | 1–30 | ticks between reel and next cast (1 tick = 1/20 s) |
+| 6 | Subtle Rotation | ON | – | small camera drift after each catch |
+| 7 | Auto Attack | OFF | – | fight Sea Creatures with a weapon (needs #8) |
+| 8 | Weapon Slot | 1 | 1–9 | hotbar slot holding the weapon |
+
+**1) Random Movement (ON)**
+After every reel, the player takes one short random step sideways or backward — sometimes
+a step back to the original spot — like a real player shifting their weight. It always
+checks the ground ahead first: on a 1×1 water edge where no direction is safe, it simply
+stands still. **Never steps into water, never auto-jumps.**
+
+**2) Sneak While Moving (ON)**
+Holds crouch for the one or two ticks of a step: quieter, subtler, closer to human input.
+
+**3) Always Sneak (ON)**
+Keeps the player crouched for the whole session to minimise tiny knockback, pushes and
+platform drift near the pond edge. Turn off if your server dislikes perma-sneak.
+
+**4) Auto Reset (ON)**
+If a hook exists for about 20 seconds with no bite signal — stuck on a bank, wedged in a
+block, or swallowed by the server — it is pulled in and recast. Set-and-forget.
+
+**5) Throw Delay (10 ticks, 1–30)**
+The pause between reel and next cast. Bump it to 15–20 on laggy connections to avoid the
+cast-then-instant-reel loop; lower it for a quicker rhythm on good ping.
+
+**6) Subtle Rotation (ON)**
+A ~1–2° camera wobble and return after every catch. Cosmetic only.
+
+**7) Auto Attack (OFF) + 8) Weapon Slot (1–9)**
+If your pond spawns **Sea Creatures**, the mod will switch to the configured hotbar slot,
+use the weapon ability, and continue fishing once the fight is over. Enable only when your
+fishing spot actually spawns monsters.
+
+---
+
+### 🔄 How It Works
+
+(All timings in game ticks; 1 tick = 1/20 s.)
+
+1. **Auto cast** — with no hook in the water and nothing queued, casts after ~14 ticks
+   (0.7 s), with a 40-tick floor between idle casts.
+2. **Bite detection** — a 6-tick warm-up window ignores stale markers from the previous
+   catch; the first 「!!!」-named entity within 3 blocks of your bobber triggers the reel
+   (each marker counts once).
+3. **Recast** — finishes the humanized motion, restores the aim that caught the fish,
+   confirms an open water line, then casts. The wait caps at 60 ticks so a drained pond
+   can never stall the loop.
+4. **Auto Reset** — a hook idle for 400 ticks is reeled and recast (setting #4).
+
+---
+
+### 🐠 Hypixel SkyBlock Tips
+
+- The Hypixel bobber shows **「!!!」** when ready to reel — that is the exact signal this
+  mod reads, so keep the bobber in view.
+- Fish from a solid platform with visible water; on a very narrow edge the random
+  movement safely stays put — that is intentional.
+- For rod enchants, Sea Creature odds and combat rules, always consult your current
+  edition of the [Hypixel SkyBlock Wiki](https://hypixel-skyblock.fandom.com/wiki/Fishing).
+- Enable `Auto Attack` only where your spot spawns Sea Creatures.
+
+---
+
+### ❓ FAQ
+
+**Q1: Enabled but nothing happens?**
+Rod in main hand? Facing water? All toggles ON? That covers 99% of the cases.
+
+**Q2: Never auto-reels?**
+The marker `「!!!」` is required. Custom servers that strip it from the bobber cannot be
+supported — the mod has nothing to read.
+
+**Q3: Will it walk me into the water?**
+No. Every step is ground-checked; if nothing is safe the player won't move, and jump
+behaviour was removed entirely.
+
+**Q4: Where is the config file?**
+`config/astrail/config.json` in the game folder, saved automatically.
+
+**Q5: Cast-and-instant-reel loop?**
+Raise Throw Delay to 15–20 ticks or fish on a steadier connection.
+
+---
+
+### 🏗 Building
+
+```bash
+# Windows
+gradlew.bat build --console=plain -q
+# macOS / Linux
+./gradlew build --console=plain -q
+```
+
+Artifact: `build/libs/astrail-fisher-0.1.0.jar`.
+
+### 📁 Repository Layout
+
+- `src/main/java/.../feature/macro/fishing/AutoFishModule.java` — the fishing state machine
+- `src/main/java/.../platform/minecraft/AstrailKeybinds.java` — GUI key binding (default Right Shift)
+- `src/main/java/.../mixin/KeyboardInputMixin.java` — fuses synthetic input into vanilla controls
+- `使用说明.txt` — a pocket-sized Chinese manual for players
+
+### 🔄 License
+
+MIT — see [LICENSE](LICENSE). Bundled fonts keep their own licenses
+(`assets/astrail/font/inter/ofl.txt`).
