@@ -67,8 +67,9 @@ Astrail Fisher 要做的事很简单：**你拿着钓鱼竿，它接管其余所
 | 4 | 自动重置 Auto Reset | 开 | – | 钩子卡住/消失约 20 秒后自动收竿重抛 |
 | 5 | 抛竿延迟 Throw Delay | 10 tick | 1~30 tick | 收竿后隔多久抛下一竿（1 tick = 1/20 秒） |
 | 6 | 轻微转动 Subtle Rotation | 开 | – | 收竿后镜头轻微摆动再回正 |
-| 7 | 自动攻击 Auto Attack | 关 | – | 钓出海兽时自动切武器用技能（需配合 8） |
-| 8 | 武器槽位 Weapon Slot | 1 | 1~9 | 武器所在快捷栏格子序号 |
+| 7 | 自动瞄准 Auto Aim | 开 | – | 收竿后把镜头对准落点再抛；关闭后完全不移动你的视角 |
+| 8 | 自动攻击 Auto Attack | 关 | – | 钓出海兽时自动切武器用技能（需配合 9） |
+| 9 | 武器槽位 Weapon Slot | 1 | 1~9 | 武器所在快捷栏格子序号 |
 
 **1）随机移动 Random Movement（默认：开）**
 
@@ -97,7 +98,15 @@ Astrail Fisher 要做的事很简单：**你拿着钓鱼竿，它接管其余所
 每次收竿后，镜头会在水平/垂直方向做一个 1~2° 的小幅晃动再回正，模仿真人握鼠标时手部抖动的
 自然感。纯外观向抖动，不影响收竿判定，随时可关。
 
-**7）自动攻击 Auto Attack（默认：关）+ 8）武器槽位 Weapon Slot（默认：1）**
+
+**7）自动瞄准 Auto Aim（默认：开）**
+
+每次重抛前，模组会把镜头平滑拉回鱼竿落点，确认能抛到水再出手。
+**关闭后模组完全不移动你的视角**：收竿动作一结束就直接按你当前镜头方向抛竿，
+可以自由转动镜头看别处。注意：镜头没对着水时抛竿可能落空，落空/卡钩由
+「自动重置」兜底。
+
+**8）自动攻击 Auto Attack（默认：关）+ 9）武器槽位 Weapon Slot（默认：1）**
 Hypixel 空岛的钓鱼会「钓出」海兽（Sea Creature）。开启后，每次上钩新生物时模组会自动把快捷栏
 切到**武器槽位**指定的格子、使用武器技能，再在清完怪后切回钓竿继续钓鱼。
 仅在你需要处理海兽保护时开启；普通水面钓鱼请保持关闭，避免频繁切装。
@@ -112,8 +121,9 @@ Hypixel 空岛的钓鱼会「钓出」海兽（Sea Creature）。开启后，每
    自动抛竿；两次空闲抛竿之间至少间隔 40 tick，防止刚抛出的新钩被自己收掉。
 2. **咬钩判定**：抛竿后先等待 **6 tick** 的浮标「预热期」（过滤上次收竿残留的标记），
    之后浮标附近 **3 格** 内出现「!!!」标记即立刻收竿（同一标记只结算一次）。
-3. **重抛流程**：先等拟人动作结束 → 恢复收竿时镜头角度 → 确认视野内水面无遮挡 → 抛下一竿；
-   若确认失败会临时白等，最多 **60 tick** 后无条件抛出，防止池塘干涸卡死整个循环。
+3. **重抛流程**：先等拟人动作结束；「自动瞄准」开启时会拉回收竿镜头并确认水面无遮挡
+   （最多等 **60 tick** 后无条件抛出，防止水池干涸卡死）；关闭时镜头完全不受影响，
+   动作一结束就按当前视角直接抛竿。
 4. **自动重置**：钩子 400 tick（20 秒）没有咬钩信号，自动收竿并重新抛投（受第 4 项设置开关控制）。
 
 ---
@@ -242,8 +252,9 @@ no manual editing needed. Use the table as a cheat-sheet; details follow.
 | 4 | Auto Reset | ON | – | reel & recast a hook stuck or missing for ~20 s |
 | 5 | Throw Delay | 10 ticks | 1–30 | ticks between reel and next cast (1 tick = 1/20 s) |
 | 6 | Subtle Rotation | ON | – | small camera drift after each catch |
-| 7 | Auto Attack | OFF | – | fight Sea Creatures with a weapon (needs #8) |
-| 8 | Weapon Slot | 1 | 1–9 | hotbar slot holding the weapon |
+| 7 | Auto Aim | ON | – | re-aim the camera at the rod spot before each cast; off = never touches your view |
+| 8 | Auto Attack | OFF | – | fight Sea Creatures with a weapon (needs #9) |
+| 9 | Weapon Slot | 1 | 1–9 | hotbar slot holding the weapon |
 
 **1) Random Movement (ON)**
 After every reel, the player takes one short random step sideways or backward — sometimes
@@ -269,7 +280,15 @@ cast-then-instant-reel loop; lower it for a quicker rhythm on good ping.
 **6) Subtle Rotation (ON)**
 A ~1–2° camera wobble and return after every catch. Cosmetic only.
 
-**7) Auto Attack (OFF) + 8) Weapon Slot (1–9)**
+
+**7) Auto Aim (ON)**
+
+Before each recast the mod smoothly swings your camera back to the rod landing spot
+and only throws once the water is in view. Turn it **off** and the camera is never
+moved: the rod goes out on schedule in whatever direction you are looking. If you
+are not facing water the cast may land badly — Auto Reset cleans that up.
+
+**8) Auto Attack (OFF) + 9) Weapon Slot (1–9)**
 If your pond spawns **Sea Creatures**, the mod will switch to the configured hotbar slot,
 use the weapon ability, and continue fishing once the fight is over. Enable only when your
 fishing spot actually spawns monsters.
@@ -285,9 +304,9 @@ fishing spot actually spawns monsters.
 2. **Bite detection** — a 6-tick warm-up window ignores stale markers from the previous
    catch; the first 「!!!」-named entity within 3 blocks of your bobber triggers the reel
    (each marker counts once).
-3. **Recast** — finishes the humanized motion, restores the aim that caught the fish,
-   confirms an open water line, then casts. The wait caps at 60 ticks so a drained pond
-   can never stall the loop.
+3. **Recast** — finishes the humanized motion; with Auto Aim on it restores the aim
+   that caught the fish and confirms an open water line (the wait caps at 60 ticks).
+   With Auto Aim off the camera is never moved and the cast goes out on schedule.
 4. **Auto Reset** — a hook idle for 400 ticks is reeled and recast (setting #4).
 
 ---
