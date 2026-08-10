@@ -124,11 +124,10 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
     private static final double ATTACK_AIM_COSINE = Math.cos(Math.toRadians(3.0D));
 
     private final BooleanSetting move = new BooleanSetting("move", "Random Movement", true);
-    private final BooleanSetting sneakMove = new BooleanSetting("sneak_move", "Sneak While Moving", true);
     private final BooleanSetting alwaysSneak = new BooleanSetting("always_sneak", "Always Sneak", true);
     private final BooleanSetting autoReset = new BooleanSetting("auto_reset", "Auto Reset", true);
     private final NumberSetting throwDelay = new NumberSetting("throw_delay_ticks", "Throw Delay", 10.0D, 1.0D, 30.0D, 1.0D);
-    private final BooleanSetting autoAim = new BooleanSetting("auto_aim", "Auto Aim", true);
+    private final BooleanSetting viewLock = new BooleanSetting("view_lock", "View Lock", true);
     private final BooleanSetting rotate = new BooleanSetting("rotate", "Subtle Rotation", true);
     private final BooleanSetting autoAttack = new BooleanSetting("auto_attack", "Auto Attack", false);
     private final NumberSetting weaponSlot = new NumberSetting("weapon_slot", "Weapon Slot", 1.0D, 1.0D, 9.0D, 1.0D);
@@ -206,15 +205,14 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
         rotations = services.rotations();
         interactions = services.interactions();
         move.presentation("Humanization", "Randomly shift your footing after a catch.");
-        sneakMove.presentation("Humanization", "Sneak during catch movement.");
         alwaysSneak.presentation("Safety", "Sneak for the full fishing session.");
         autoReset.presentation("Recovery", "Reset when the hook stalls or vanishes.");
         throwDelay.presentation("Timing", "Ticks before recasting.");
-        autoAim.presentation("Casting", "Re-aim the camera at the rod landing spot before recasting. Disable to keep your view free.");
+        viewLock.presentation("Casting", "Lock your camera to the rod landing spot before recasting. Disable to keep your view free.");
         rotate.presentation("Humanization", "Add subtle camera drift after a catch.");
         autoAttack.presentation("Combat", "Use a weapon ability when a newly caught monster appears.");
         weaponSlot.presentation("Combat", "Hotbar slot containing the ability weapon (1-9).");
-        addSettings(move, sneakMove, alwaysSneak, autoReset, throwDelay, autoAim, rotate,
+        addSettings(move, alwaysSneak, autoReset, throwDelay, viewLock, rotate,
             autoAttack, weaponSlot);
     }
 
@@ -311,7 +309,7 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
         }
         if (movementSafetyTicks > 0) movementSafetyTicks--;
         sneakLease.setPressed(alwaysSneak.get()
-            || (motionTick >= 0 && sneakMove.get())
+            || motionTick >= 0
             || movementSafetyTicks > 0);
     }
 
@@ -542,14 +540,14 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
      * only goes out once the look actually meets water. The hold is bounded so a
      * pond that has drained (or a spot the player has been dragged away from)
      * cannot stall the module forever.
-     * <p>With Auto Aim disabled the camera is never touched: the cast goes out
+     * <p>With View Lock disabled the camera is never touched: the cast goes out
      * as soon as the footwork finishes, wherever the player is looking.
      */
     private boolean holdCast(LocalPlayer player) {
         if (motionTick >= 0) return true;
-        // With Auto Aim off the camera is never moved: the queued cast goes out
+        // With View Lock off the camera is never moved: the queued cast goes out
         // as soon as the footwork finishes, wherever the player happens to look.
-        if (!autoAim.get()) return false;
+        if (!viewLock.get()) return false;
         // The hold bound is checked for both remembered and remembered-less
         // cast targets: a pond that drained, a player dragged away or a look
         // that cannot reach water must not stall the module forever, so past

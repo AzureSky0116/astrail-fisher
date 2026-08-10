@@ -62,55 +62,48 @@ Astrail Fisher 要做的事很简单：**你拿着钓鱼竿，它接管其余所
 | # | 设置 | 默认 | 范围 | 一句话说明 |
 | --- | --- | --- | --- | --- |
 | 1 | 随机移动 Random Movement | 开 | – | 收竿后朝安全方向随机小走一步，模拟真人 |
-| 2 | 移动时潜行 Sneak While Moving | 开 | – | 小步移动时自动蹲潜，脚步更轻 |
-| 3 | 全程潜行 Always Sneak | 开 | – | 整个钓鱼过程持续潜行，防轻微位移 |
-| 4 | 自动重置 Auto Reset | 开 | – | 钩子卡住/消失约 20 秒后自动收竿重抛 |
-| 5 | 抛竿延迟 Throw Delay | 10 tick | 1~30 tick | 收竿后隔多久抛下一竿（1 tick = 1/20 秒） |
+| 2 | 全程潜行 Always Sneak | 开 | – | 整个钓鱼过程持续潜行，防轻微位移 |
+| 3 | 自动重置 Auto Reset | 开 | – | 钩子卡住/消失约 20 秒后自动收竿重抛 |
+| 4 | 抛竿延迟 Throw Delay | 10 tick | 1~30 tick | 收竿后隔多久抛下一竿（1 tick = 1/20 秒） |
+| 5 | 视角锁定 View Lock | 开 | – | 抛竿前把镜头锁定在鱼竿落点；关闭后视角完全自由 |
 | 6 | 轻微转动 Subtle Rotation | 开 | – | 收竿后镜头轻微摆动再回正 |
-| 7 | 自动瞄准 Auto Aim | 开 | – | 收竿后把镜头对准落点再抛；关闭后完全不移动你的视角 |
-| 8 | 自动攻击 Auto Attack | 关 | – | 钓出海兽时自动切武器用技能（需配合 9） |
-| 9 | 武器槽位 Weapon Slot | 1 | 1~9 | 武器所在快捷栏格子序号 |
+| 7 | 自动攻击 Auto Attack | 关 | – | 钓出海兽时自动切武器用技能（需配合 8） |
+| 8 | 武器槽位 Weapon Slot | 1 | 1~9 | 武器所在快捷栏格子序号 |
 
 **1）随机移动 Random Movement（默认：开）**
 
 收竿成功后，角色会朝「安全方向」随机走一小步——左右微挪或后退半步，偶尔再退回原位，
 看起来就像真人在换重心。它绝不是乱走：每次移动前都会先探测脚下及四周是不是实心地面，
 如果一个方向都出不去（比如站在 1×1 水沿），就干脆原地不动。**不踩空、不自动跳**，
-放心挂着。
+放心挂着。小步移动期间会自动短暂潜行（该行为固定开启，无需配置）。
 
-**2）移动时潜行 Sneak While Moving（默认：开）**
-小步移动的那一两 tick 自动蹲潜，脚步更轻、动作更自然。不影响移动本身，建议保持开启。
-
-**3）全程潜行 Always Sneak（默认：开）**
+**2）全程潜行 Always Sneak（默认：开）**
 整个钓鱼过程持续按下潜行，防止被海之击退、被其他玩家无意推动或在平台边缘产生漂移。若所在
 服务器对长时间潜行有专门的检测或惩罚，可以关掉。
 
-**4）自动重置 Auto Reset（默认：开）**
+**3）自动重置 Auto Reset（默认：开）**
 钩子已经存在约 20 秒却没有任何「咬钩标记」——多半是钩子挂在了岸边的石头上，或是服务器吞了
 浮标——此时自动收竿并重新抛投，不用你手动干预。建议保持开启。
 
-**5）抛竿延迟 Throw Delay（默认：10 tick，可调 1~30）**
+**4）抛竿延迟 Throw Delay（默认：10 tick，可调 1~30）**
 收竿与下一竿之间的等待时间，单位 tick（1 tick = 1/20 秒）。网络波动较大的环境下，稍大的值
 （如 15~20）可以避免系统把刚抛出的浮标又收回去；网速好、想要更快节奏可以调小。默认 10 已能
 满足大多数场景。
 
-**6）轻微转动 Subtle Rotation（默认：开）**
-每次收竿后，镜头会在水平/垂直方向做一个 1~2° 的小幅晃动再回正，模仿真人握鼠标时手部抖动的
-自然感。纯外观向抖动，不影响收竿判定，随时可关。
-
-
-**7）自动瞄准 Auto Aim（默认：开）**
-
+**5）视角锁定 View Lock（默认：开）**
 每次重抛前，模组会把镜头平滑拉回鱼竿落点，确认能抛到水再出手。
 **关闭后模组完全不移动你的视角**：收竿动作一结束就直接按你当前镜头方向抛竿，
 可以自由转动镜头看别处。注意：镜头没对着水时抛竿可能落空，落空/卡钩由
 「自动重置」兜底。
 
-**8）自动攻击 Auto Attack（默认：关）+ 9）武器槽位 Weapon Slot（默认：1）**
+**6）轻微转动 Subtle Rotation（默认：开）**
+每次收竿后，镜头会在水平/垂直方向做一个 1~2° 的小幅晃动再回正，模仿真人握鼠标时手部抖动的
+自然感。纯外观向抖动，不影响收竿判定，随时可关。
+
+**7）自动攻击 Auto Attack（默认：关）+ 8）武器槽位 Weapon Slot（默认：1）**
 Hypixel 空岛的钓鱼会「钓出」海兽（Sea Creature）。开启后，每次上钩新生物时模组会自动把快捷栏
 切到**武器槽位**指定的格子、使用武器技能，再在清完怪后切回钓竿继续钓鱼。
 仅在你需要处理海兽保护时开启；普通水面钓鱼请保持关闭，避免频繁切装。
-
 ---
 
 ### 🔄 工作原理
@@ -121,7 +114,7 @@ Hypixel 空岛的钓鱼会「钓出」海兽（Sea Creature）。开启后，每
    自动抛竿；两次空闲抛竿之间至少间隔 40 tick，防止刚抛出的新钩被自己收掉。
 2. **咬钩判定**：抛竿后先等待 **6 tick** 的浮标「预热期」（过滤上次收竿残留的标记），
    之后浮标附近 **3 格** 内出现「!!!」标记即立刻收竿（同一标记只结算一次）。
-3. **重抛流程**：先等拟人动作结束；「自动瞄准」开启时会拉回收竿镜头并确认水面无遮挡
+3. **重抛流程**：先等拟人动作结束；「视角锁定」开启时会拉回收竿镜头并确认水面无遮挡
    （最多等 **60 tick** 后无条件抛出，防止水池干涸卡死）；关闭时镜头完全不受影响，
    动作一结束就按当前视角直接抛竿。
 4. **自动重置**：钩子 400 tick（20 秒）没有咬钩信号，自动收竿并重新抛投（受第 4 项设置开关控制）。
@@ -247,52 +240,46 @@ no manual editing needed. Use the table as a cheat-sheet; details follow.
 | # | Setting | Default | Range | What it does |
 | --- | --- | --- | --- | --- |
 | 1 | Random Movement | ON | – | Small random step in a safe direction after each catch |
-| 2 | Sneak While Moving | ON | – | crouch briefly while stepping, quieter and more human |
-| 3 | Always Sneak | ON | – | keep the catch steady, resistant to small nudges |
-| 4 | Auto Reset | ON | – | reel & recast a hook stuck or missing for ~20 s |
-| 5 | Throw Delay | 10 ticks | 1–30 | ticks between reel and next cast (1 tick = 1/20 s) |
+| 2 | Always Sneak | ON | – | keep the catch steady, resistant to small nudges |
+| 3 | Auto Reset | ON | – | reel & recast a hook stuck or missing for ~20 s |
+| 4 | Throw Delay | 10 ticks | 1–30 | ticks between reel and next cast (1 tick = 1/20 s) |
+| 5 | View Lock | ON | – | lock the camera on the rod spot before each cast; off = free view |
 | 6 | Subtle Rotation | ON | – | small camera drift after each catch |
-| 7 | Auto Aim | ON | – | re-aim the camera at the rod spot before each cast; off = never touches your view |
-| 8 | Auto Attack | OFF | – | fight Sea Creatures with a weapon (needs #9) |
-| 9 | Weapon Slot | 1 | 1–9 | hotbar slot holding the weapon |
+| 7 | Auto Attack | OFF | – | fight Sea Creatures with a weapon (needs #8) |
+| 8 | Weapon Slot | 1 | 1–9 | hotbar slot holding the weapon |
 
 **1) Random Movement (ON)**
 After every reel, the player takes one short random step sideways or backward — sometimes
 a step back to the original spot — like a real player shifting their weight. It always
 checks the ground ahead first: on a 1×1 water edge where no direction is safe, it simply
-stands still. **Never steps into water, never auto-jumps.**
+stands still. **Never steps into water, never auto-jumps.** (Each step comes with a
+brief crouch; that behaviour is fixed and needs no toggle.)
 
-**2) Sneak While Moving (ON)**
-Holds crouch for the one or two ticks of a step: quieter, subtler, closer to human input.
-
-**3) Always Sneak (ON)**
+**2) Always Sneak (ON)**
 Keeps the player crouched for the whole session to minimise tiny knockback, pushes and
 platform drift near the pond edge. Turn off if your server dislikes perma-sneak.
 
-**4) Auto Reset (ON)**
+**3) Auto Reset (ON)**
 If a hook exists for about 20 seconds with no bite signal — stuck on a bank, wedged in a
 block, or swallowed by the server — it is pulled in and recast. Set-and-forget.
 
-**5) Throw Delay (10 ticks, 1–30)**
+**4) Throw Delay (10 ticks, 1–30)**
 The pause between reel and next cast. Bump it to 15–20 on laggy connections to avoid the
 cast-then-instant-reel loop; lower it for a quicker rhythm on good ping.
+
+**5) View Lock (ON)**
+Before each recast the mod smoothly swings your camera back to the rod landing spot and
+only throws once the water is in view. Turn it **off** and the camera is never moved:
+the rod goes out on schedule in whatever direction you are looking. If you are not
+facing water the cast may land badly — Auto Reset cleans that up.
 
 **6) Subtle Rotation (ON)**
 A ~1–2° camera wobble and return after every catch. Cosmetic only.
 
-
-**7) Auto Aim (ON)**
-
-Before each recast the mod smoothly swings your camera back to the rod landing spot
-and only throws once the water is in view. Turn it **off** and the camera is never
-moved: the rod goes out on schedule in whatever direction you are looking. If you
-are not facing water the cast may land badly — Auto Reset cleans that up.
-
-**8) Auto Attack (OFF) + 9) Weapon Slot (1–9)**
+**7) Auto Attack (OFF) + 8) Weapon Slot (1–9)**
 If your pond spawns **Sea Creatures**, the mod will switch to the configured hotbar slot,
 use the weapon ability, and continue fishing once the fight is over. Enable only when your
 fishing spot actually spawns monsters.
-
 ---
 
 ### 🔄 How It Works
@@ -304,9 +291,9 @@ fishing spot actually spawns monsters.
 2. **Bite detection** — a 6-tick warm-up window ignores stale markers from the previous
    catch; the first 「!!!」-named entity within 3 blocks of your bobber triggers the reel
    (each marker counts once).
-3. **Recast** — finishes the humanized motion; with Auto Aim on it restores the aim
+3. **Recast** — finishes the humanized motion; with View Lock on it restores the aim
    that caught the fish and confirms an open water line (the wait caps at 60 ticks).
-   With Auto Aim off the camera is never moved and the cast goes out on schedule.
+   With View Lock off the camera is never moved and the cast goes out on schedule.
 4. **Auto Reset** — a hook idle for 400 ticks is reeled and recast (setting #4).
 
 ---
