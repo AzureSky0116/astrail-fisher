@@ -1,0 +1,17 @@
+.gradle/
+build/
+run/
+out/
+*.log
+*.iml
+.idea/
+.vscode/
+*.class
+__pycache__/
+*.py[cod]
+logs/
+
+# Scratch probes and runtime-check captures at the repo root
+SecurityProbe.java
+foo/
+*-runtime-check.png

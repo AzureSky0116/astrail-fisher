@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "dev.astrail.client.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "KeyboardInputMixin",
+    "MinecraftAttackMixin",
+    "MinecraftPauseMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
