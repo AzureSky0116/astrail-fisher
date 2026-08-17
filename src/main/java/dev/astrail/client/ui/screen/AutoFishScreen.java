@@ -44,13 +44,13 @@ public final class AutoFishScreen extends Screen {
     private static final int CONTENT_X = PANEL_X + 40;
     private static final int CONTENT_WIDTH = PANEL_WIDTH - 80;
     private static final int COLUMN_GAP = 24;
-    private static final int ROW_WIDTH = (CONTENT_WIDTH - COLUMN_GAP) / 2;
-    private static final int COL_1_X = CONTENT_X;
-    private static final int COL_2_X = CONTENT_X + ROW_WIDTH + COLUMN_GAP;
-    private static final int ROW_HEIGHT = 92;
-    private static final int ROW_Y = PANEL_Y + 254;
-    private static final int ROW_STEP = 104;
-    private static final int COLUMNS = 2;
+    private static final int COLUMNS = 3;
+    private static final int ROW_WIDTH = (CONTENT_WIDTH - COLUMN_GAP * (COLUMNS - 1)) / COLUMNS;
+    private static final int ROW_HEIGHT = 88;
+    private static final int ROW_Y = PANEL_Y + 244;
+    private static final int ROW_STEP = 94;
+    /** Vertical spacing between wrapped description lines (AUXILIARY line height). */
+    private static final int DESCRIPTION_LINE_HEIGHT = 15;
 
     /** Motion timings mirror the Astrail menu screen exactly. */
     private static final long OPEN_DURATION_MILLIS = 220L;
@@ -207,7 +207,8 @@ public final class AutoFishScreen extends Screen {
                 : staggeredEase(openedAt, settingIndex, ROW_STAGGER_MILLIS, ROW_DURATION_MILLIS);
             float rowOpacity = 0.38F + rowEase * 0.62F;
             int y = ROW_Y + rowNumber * ROW_STEP + Math.round((1.0F - rowEase) * 12.0F);
-            UiRect row = new UiRect(column == 0 ? COL_1_X : COL_2_X, y, ROW_WIDTH, ROW_HEIGHT);
+            int x = CONTENT_X + column * (ROW_WIDTH + COLUMN_GAP);
+            UiRect row = new UiRect(x, y, ROW_WIDTH, ROW_HEIGHT);
             boolean interactive = rowEase >= 0.9F;
             boolean hovered = interactive && row.contains(mouseDesignX, mouseDesignY);
             float hover = hoverAmount("setting:" + setting.id(), hovered);
@@ -322,7 +323,7 @@ public final class AutoFishScreen extends Screen {
                 booleanToggleAmount(booleanSetting),
                 0xFFFFFFFF
             );
-            drawDescription(graphics, setting, row, row.y() + 58, row.right() - 120);
+            drawDescription(graphics, setting, row, row.y() + 55, row.right() - 120, 2);
             return;
         }
         if (setting instanceof NumberSetting numberSetting) {
@@ -332,7 +333,7 @@ public final class AutoFishScreen extends Screen {
             String value = formatNumber(numberSetting.get(), numberSetting.step());
             UI.drawRightText(graphics, value, row.right() - 20, row.y() + 27,
                 UiTextStyle.AUXILIARY_MEDIUM, UiTheme.TEXT);
-            drawDescription(graphics, setting, row, row.y() + 58, row.right() - 120);
+            drawDescription(graphics, setting, row, row.y() + 55, row.right() - 120, 1);
             UiRect slider = new UiRect(row.x() + 18, row.y() + 72, row.width() - 36, 12);
             UiDraw.slider(graphics, slider, (float) progress, 0xFFFFFFFF);
         }
@@ -342,19 +343,50 @@ public final class AutoFishScreen extends Screen {
         GuiGraphicsExtractor graphics,
         Setting<?> setting,
         UiRect row,
-        int centerY,
-        int rightLimit
+        int firstLineCenterY,
+        int rightLimit,
+        int maxLines
     ) {
         String description = setting.description();
         if (description == null || description.isBlank()) return;
-        UI.drawLeftText(
-            graphics,
-            UI.trim(description, Math.max(0, rightLimit - row.x() - 18), UiTextStyle.AUXILIARY),
-            row.x() + 18,
-            centerY,
-            UiTextStyle.AUXILIARY,
-            UiTheme.MUTED
-        );
+        float maxWidth = Math.max(0.0F, rightLimit - row.x() - 18);
+        List<String> lines = wrapDescription(description, maxWidth, maxLines);
+        for (int line = 0; line < lines.size(); line++) {
+            UI.drawLeftText(
+                graphics,
+                lines.get(line),
+                row.x() + 18,
+                firstLineCenterY + line * DESCRIPTION_LINE_HEIGHT,
+                UiTextStyle.AUXILIARY,
+                UiTheme.MUTED
+            );
+        }
+    }
+
+    /** Wraps a description into at most {@code maxLines} lines; overflow gets an ellipsis. */
+    private static List<String> wrapDescription(String text, float maxWidth, int maxLines) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder line = new StringBuilder();
+        String[] words = text.split("\\s+");
+        for (int index = 0; index < words.length; index++) {
+            String candidate = line.length() == 0 ? words[index] : line + " " + words[index];
+            if (line.length() > 0 && UI.width(candidate, UiTextStyle.AUXILIARY) > maxWidth) {
+                lines.add(line.toString());
+                line = new StringBuilder(words[index]);
+                if (lines.size() == maxLines) {
+                    StringBuilder rest = new StringBuilder(line);
+                    for (int restIndex = index + 1; restIndex < words.length; restIndex++) {
+                        rest.append(' ').append(words[restIndex]);
+                    }
+                    lines.set(lines.size() - 1, UI.trim(rest.toString(), maxWidth, UiTextStyle.AUXILIARY));
+                    return lines;
+                }
+            } else {
+                line = new StringBuilder(candidate);
+            }
+        }
+        if (line.length() > 0) lines.add(line.toString());
+        return lines;
     }
 
     private SettingRow toRow(Setting<?> setting, UiRect row) {

@@ -28,7 +28,11 @@ Astrail Fisher 要做的事很简单：**你拿着钓鱼竿，它接管其余所
 - **按「!!!」判定收竿时机** —— 直接利用 Hypixel 浮标自带的咬钩提示，时机准确
 - **拟人化** —— 随机移动、步间潜行、全程潜行、镜头微晃
 - **自动重置** —— 钩子卡岸、卡石或被服务器吞掉，约 20 秒后自动收竿重抛
-- **自动攻击（可选）** —— 钓出海兽（Sea Creatures）时自动切至武器格并使用技能
+- **自动攻击（可选）** —— 钓出海兽（Sea Creatures）时自动切至武器格并使用技能；
+  可关闭**攻击瞄准**（配合 Hyperion 这类右键会传送的武器不会被传离钓点），
+  或开启**单次释放**（每只海怪只按一次右键，防止技能把蓝耗空）
+- **精准的海怪识别** —— 支持 Banshee、Frog Man 等人形海怪；只攻击自己浮标落点
+  新出现的海怪（不会误打别人的），海怪被抢杀/击退/超时后自动停手
 
 ### 🛠 运行要求
 
@@ -63,12 +67,17 @@ Astrail Fisher 要做的事很简单：**你拿着钓鱼竿，它接管其余所
 | --- | --- | --- | --- | --- |
 | 1 | 随机移动 Random Movement | 开 | – | 收竿后朝安全方向随机小走一步，模拟真人 |
 | 2 | 全程潜行 Always Sneak | 开 | – | 整个钓鱼过程持续潜行，防轻微位移 |
-| 3 | 自动重置 Auto Reset | 开 | – | 钩子卡住/消失约 20 秒后自动收竿重抛 |
-| 4 | 抛竿延迟 Throw Delay | 10 tick | 1~30 tick | 收竿后隔多久抛下一竿（1 tick = 1/20 秒） |
-| 5 | 视角锁定 View Lock | 开 | – | 抛竿前把镜头锁定在鱼竿落点；关闭后视角完全自由 |
-| 6 | 轻微转动 Subtle Rotation | 开 | – | 收竿后镜头轻微摆动再回正 |
-| 7 | 自动攻击 Auto Attack | 关 | – | 钓出海兽时自动切武器用技能（需配合 8） |
-| 8 | 武器槽位 Weapon Slot | 1 | 1~9 | 武器所在快捷栏格子序号 |
+| 3 | 自动重置 Auto Reset | 开 | – | 钩子卡住/消失后自动收竿重抛（配合 4） |
+| 4 | 重置超时 Reset Timeout | 20 秒 | 5~120 秒 | 多久没咬钩就收竿重抛 |
+| 5 | 重试上限 Retry Limit | 5 | 1~50 | 连续卡钩重试多少次后自动关闭自动钓鱼 |
+| 6 | 抛竿延迟 Throw Delay | 10 tick | 1~30 tick | 收竿后隔多久抛下一竿（1 tick = 1/20 秒） |
+| 7 | 视角锁定 View Lock | 开 | – | 抛竿前把镜头锁定在鱼竿落点；关闭后视角完全自由 |
+| 8 | 轻微转动 Subtle Rotation | 开 | – | 收竿后镜头轻微摆动再回正 |
+| 9 | 自动攻击 Auto Attack | 关 | – | 钓出海兽时自动切武器用技能（需配合 10~13） |
+| 10 | 攻击频率 Attack CPS | 5 | 1~10 | 打海兽时每秒右键次数 |
+| 11 | 攻击瞄准 Aim Before Attack | 开 | – | 右键前自动对准海怪；关闭后不移动视角（适合 Hyperion 等传送武器） |
+| 12 | 单次释放 Single Use | 关 | – | 每只海怪只按一次右键就停手，防止技能空按把蓝耗空 |
+| 13 | 武器槽位 Weapon Slot | 1 | 1~9 | 武器所在快捷栏格子序号 |
 
 **1）随机移动 Random Movement（默认：开）**
 
@@ -82,28 +91,49 @@ Astrail Fisher 要做的事很简单：**你拿着钓鱼竿，它接管其余所
 服务器对长时间潜行有专门的检测或惩罚，可以关掉。
 
 **3）自动重置 Auto Reset（默认：开）**
-钩子已经存在约 20 秒却没有任何「咬钩标记」——多半是钩子挂在了岸边的石头上，或是服务器吞了
-浮标——此时自动收竿并重新抛投，不用你手动干预。建议保持开启。
+钩子已经存在超过「重置超时」设定的秒数却没有任何「咬钩标记」——多半是钩子挂在了岸边的石头上，
+或是服务器吞了浮标——此时自动收竿并重新抛投，不用你手动干预。建议保持开启。
 
-**4）抛竿延迟 Throw Delay（默认：10 tick，可调 1~30）**
+**4）重置超时 Reset Timeout（默认：20 秒，可调 5~120 秒）**
+多久没有咬钩就判定「卡钩」并收竿重抛。默认 20 秒适合大多数场景；钓点咬钩慢（如深夜时段）可以
+调大，想更快回收空钩可以调小。仅在第 3 项「自动重置」开启时生效。
+
+**5）重试上限 Retry Limit（默认：5 次，可调 1~50）**
+连续卡钩（由第 3 项「自动重置」触发）达到这个次数、且中间没有成功钓到鱼时，模组会**自动关闭
+自动钓鱼**并在聊天里提示你，防止一直空抛耗时间。中间钓到任何一条鱼都会重新计数。
+
+**6）抛竿延迟 Throw Delay（默认：10 tick，可调 1~30）**
 收竿与下一竿之间的等待时间，单位 tick（1 tick = 1/20 秒）。网络波动较大的环境下，稍大的值
 （如 15~20）可以避免系统把刚抛出的浮标又收回去；网速好、想要更快节奏可以调小。默认 10 已能
 满足大多数场景。
 
-**5）视角锁定 View Lock（默认：开）**
+**7）视角锁定 View Lock（默认：开）**
 每次重抛前，模组会把镜头平滑拉回鱼竿落点，确认能抛到水再出手。
 **关闭后模组完全不移动你的视角**：收竿动作一结束就直接按你当前镜头方向抛竿，
 可以自由转动镜头看别处。注意：镜头没对着水时抛竿可能落空，落空/卡钩由
 「自动重置」兜底。
 
-**6）轻微转动 Subtle Rotation（默认：开）**
+**8）轻微转动 Subtle Rotation（默认：开）**
 每次收竿后，镜头会在水平/垂直方向做一个 1~2° 的小幅晃动再回正，模仿真人握鼠标时手部抖动的
 自然感。纯外观向抖动，不影响收竿判定，随时可关。
 
-**7）自动攻击 Auto Attack（默认：关）+ 8）武器槽位 Weapon Slot（默认：1）**
+**9）自动攻击 Auto Attack（默认：关）+ 10）攻击频率 Attack CPS（默认：5）+ 11）攻击瞄准 Aim Before Attack（默认：开）+ 12）单次释放 Single Use（默认：关）+ 13）武器槽位 Weapon Slot（默认：1）**
 Hypixel 空岛的钓鱼会「钓出」海兽（Sea Creature）。开启后，每次上钩新生物时模组会自动把快捷栏
 切到**武器槽位**指定的格子、使用武器技能，再在清完怪后切回钓竿继续钓鱼。
 仅在你需要处理海兽保护时开启；普通水面钓鱼请保持关闭，避免频繁切装。
+
+**10）攻击频率 Attack CPS（默认：5，可调 1~10）**：打海兽时每秒点几次右键。默认 5 下/秒
+适合大多数武器；使用 Soul Whip 这类带隐藏冷却（0.5 秒）的武器时可适当调低，避免空按。
+
+**11）攻击瞄准 Aim Before Attack（默认：开）**：开启时，模组会在右键前自动把镜头对准海兽，确保技能命中。
+**关闭后，模组完全不移动你的视角**——只负责切武器、按时右键，瞄准交给你自己。
+如果你用的是 Hyperion 这类「右键会传送」的武器，建议关闭：自动瞄准海兽后右键会把角色直接传送到海兽身边、远离钓鱼点，
+关闭后你可以在安全方向手动右键（爆炸伤害同样能清掉海兽），钓点纹丝不动。
+
+**12）单次释放 Single Use（默认：关）**：开启后，每钓到一只海兽**只按一次右键**便立即停手、
+切回钓竿继续钓鱼，不再连续右键。适合技能伤害足够一击清怪、或不想让模组反复释放技能
+把蓝量耗空的场景。关闭时保持默认行为：持续右键直到海兽被清掉或离开攻击范围
+（若海兽被击退/传送出范围，模组会自动停手，不会对着空气空按）。
 ---
 
 ### 🔄 工作原理
@@ -117,7 +147,14 @@ Hypixel 空岛的钓鱼会「钓出」海兽（Sea Creature）。开启后，每
 3. **重抛流程**：先等拟人动作结束；「视角锁定」开启时会拉回收竿镜头并确认水面无遮挡
    （最多等 **60 tick** 后无条件抛出，防止水池干涸卡死）；关闭时镜头完全不受影响，
    动作一结束就按当前视角直接抛竿。
-4. **自动重置**：钩子 400 tick（20 秒）没有咬钩信号，自动收竿并重新抛投（受第 4 项设置开关控制）。
+4. **自动重置**：钩子超过「重置超时」（默认 20 秒 = 400 tick）没有咬钩信号，自动收竿并重新
+   抛投（受第 3、4 项设置开关控制）。
+5. **海兽检测**：收竿后的 60 tick（3 秒）内，在浮标落点 **8 格**半径内寻找新出现的生物，
+   取最近者作为本次收获的海兽。人形海兽（Banshee、Frog Man、Alligator、鲨鱼系列、
+   Spooky 系列等）在 Hypixel 上以合成玩家实体呈现，模组内置官方 wiki 的**水/熔岩海怪
+   全量名单**，结合「是否在 Tab 列表」双重判定区分海兽 NPC 与真实玩家（不依赖名字里的等级
+   前缀——真实 SkyBlock 玩家的名字前同样带等级），不会误伤真人。攻击中若海兽被别人击杀、被击退出范围或战斗超过 20 秒，自动
+   停手并继续钓鱼。
 
 ---
 
@@ -150,6 +187,16 @@ Hypixel 空岛的钓鱼会「钓出」海兽（Sea Creature）。开启后，每
 
 **Q5：抛出后立刻又被收回？**
 把「抛竿延迟 Throw Delay」调大（建议 15~20 tick），或等网络稳定后再挂机。
+
+**Q6：人形海怪（Banshee / Frog Man / Alligator / 鲨鱼 / Spooky 系列等）能自动攻击吗？**
+可以。这些海怪在服务器上以「玩家」外形实体呈现，本模组通过「海怪名名单 + Tab 列表」
+双重判定区分真实玩家与海怪 NPC（名单覆盖官方 wiki 水/熔岩海怪全表），会正常识别并
+攻击；反过来，真人玩家永远不会被当成海怪。
+
+**Q7：武器是 Soul Whip 之类的「钓鱼武器」时无法自动攻击？**
+Soul Whip 等钓鱼武器在游戏里属于钓鱼竿类型的物品，旧版本会误把它当成钓竿而拒绝
+切换。现在武器槽位里的任何物品（含 Soul Whip）都会被当作武器使用——只要它不是
+当前主手正拿着的那根钓竿。
 
 ---
 
@@ -206,7 +253,12 @@ session looking like an actual player instead of a machine.
 - **Humanization**: random movement, sneaking while stepping, always-sneak, subtle rotation
 - **Auto Reset**: hooks that get stuck or vanish are pulled in and recast after ~20 s
 - **Auto Attack (optional)**: when a Sea Creature bites, swap to your weapon slot and use
-  its ability, then return to fishing
+  its ability, then return to fishing. Aim assist can be turned off so teleport
+  weapons like Hyperion never yank you off your fishing spot, and a **Single Use**
+  option right-clicks each sea creature exactly once to avoid draining mana.
+- **Precise creature detection** — humanoid sea creatures (Banshee, Frog Man, ...) are
+  recognised; only the creature that spawned at your own bobber is attacked (never a
+  neighbour's), and the fight stops when it is killed by others, leaves range, or times out.
 
 ### 🛠 Requirements
 
@@ -241,12 +293,17 @@ no manual editing needed. Use the table as a cheat-sheet; details follow.
 | --- | --- | --- | --- | --- |
 | 1 | Random Movement | ON | – | Small random step in a safe direction after each catch |
 | 2 | Always Sneak | ON | – | keep the catch steady, resistant to small nudges |
-| 3 | Auto Reset | ON | – | reel & recast a hook stuck or missing for ~20 s |
-| 4 | Throw Delay | 10 ticks | 1–30 | ticks between reel and next cast (1 tick = 1/20 s) |
-| 5 | View Lock | ON | – | lock the camera on the rod spot before each cast; off = free view |
-| 6 | Subtle Rotation | ON | – | small camera drift after each catch |
-| 7 | Auto Attack | OFF | – | fight Sea Creatures with a weapon (needs #8) |
-| 8 | Weapon Slot | 1 | 1–9 | hotbar slot holding the weapon |
+| 3 | Auto Reset | ON | – | reel & recast a hook stuck or missing (works with #4) |
+| 4 | Reset Timeout | 20 s | 5–120 s | seconds without a bite before the hook is reeled and recast |
+| 5 | Retry Limit | 5 | 1–50 | consecutive stuck retries before auto fishing turns itself off |
+| 6 | Throw Delay | 10 ticks | 1–30 | ticks between reel and next cast (1 tick = 1/20 s) |
+| 7 | View Lock | ON | – | lock the camera on the rod spot before each cast; off = free view |
+| 8 | Subtle Rotation | ON | – | small camera drift after each catch |
+| 9 | Auto Attack | OFF | – | fight Sea Creatures with a weapon (needs #10–#13) |
+| 10 | Attack CPS | 5 | 1–10 | right-clicks per second while fighting a sea creature |
+| 11 | Aim Before Attack | ON | – | aim at the monster before right-click; off = camera never moved (Hyperion-friendly) |
+| 12 | Single Use | OFF | – | right-click each sea creature exactly once, then stop (saves mana) |
+| 13 | Weapon Slot | 1 | 1–9 | hotbar slot holding the weapon |
 
 **1) Random Movement (ON)**
 After every reel, the player takes one short random step sideways or backward — sometimes
@@ -260,26 +317,51 @@ Keeps the player crouched for the whole session to minimise tiny knockback, push
 platform drift near the pond edge. Turn off if your server dislikes perma-sneak.
 
 **3) Auto Reset (ON)**
-If a hook exists for about 20 seconds with no bite signal — stuck on a bank, wedged in a
-block, or swallowed by the server — it is pulled in and recast. Set-and-forget.
+If a hook exists for longer than the **Reset Timeout** with no bite signal — stuck on a bank,
+wedged in a block, or swallowed by the server — it is pulled in and recast. Set-and-forget.
 
-**4) Throw Delay (10 ticks, 1–30)**
+**4) Reset Timeout (20 s, 5–120 s)**
+Seconds without a bite before the hook counts as stuck and gets recast. Raise it for slow
+fishing spots, lower it to recycle empty hooks faster. Only active while #3 is on.
+
+**5) Retry Limit (5, 1–50)**
+After this many consecutive stuck-hook resets (from #3) with no catch in between, the mod
+**turns auto fishing off** and tells you in chat, so it never spends forever casting into
+nothing. Any successful catch restarts the count.
+
+**6) Throw Delay (10 ticks, 1–30)**
 The pause between reel and next cast. Bump it to 15–20 on laggy connections to avoid the
 cast-then-instant-reel loop; lower it for a quicker rhythm on good ping.
 
-**5) View Lock (ON)**
+**7) View Lock (ON)**
 Before each recast the mod smoothly swings your camera back to the rod landing spot and
 only throws once the water is in view. Turn it **off** and the camera is never moved:
 the rod goes out on schedule in whatever direction you are looking. If you are not
 facing water the cast may land badly — Auto Reset cleans that up.
 
-**6) Subtle Rotation (ON)**
+**8) Subtle Rotation (ON)**
 A ~1–2° camera wobble and return after every catch. Cosmetic only.
 
-**7) Auto Attack (OFF) + 8) Weapon Slot (1–9)**
+**9) Auto Attack (OFF) + 10) Attack CPS (5) + 11) Aim Before Attack (ON) + 12) Single Use (OFF) + 13) Weapon Slot (1–9)**
 If your pond spawns **Sea Creatures**, the mod will switch to the configured hotbar slot,
 use the weapon ability, and continue fishing once the fight is over. Enable only when your
 fishing spot actually spawns monsters.
+
+**10) Attack CPS (5, 1–10)**: how many right-clicks per second the mod fires while fighting.
+Five per second suits most weapons; lower it for weapons with a hidden cooldown, like the
+Soul Whip (0.5 s), so clicks are not wasted.
+
+**11) Aim Before Attack (ON)**: with it on, the mod swings your camera to the monster
+before every right-click so abilities connect. Turn it **off** and the camera is never
+moved — it only swaps weapons and clicks on schedule, leaving the aiming to you.
+This is the setting for **Hyperion-style teleport weapons**: with aiming on, the
+right-click teleports you onto the monster and away from your fishing spot; with it off
+you right-click a safe direction yourself and the explosion still clears the mob.
+
+**12) Single Use (OFF)**: with it on, the mod right-clicks **exactly once** per caught
+sea creature and immediately switches back to fishing — no repeated clicks, no wasted
+mana. With it off (default) it keeps clicking until the mob dies or leaves the attack
+range (a range guard now stops it instead of clicking into the air).
 ---
 
 ### 🔄 How It Works
@@ -294,7 +376,16 @@ fishing spot actually spawns monsters.
 3. **Recast** — finishes the humanized motion; with View Lock on it restores the aim
    that caught the fish and confirms an open water line (the wait caps at 60 ticks).
    With View Lock off the camera is never moved and the cast goes out on schedule.
-4. **Auto Reset** — a hook idle for 400 ticks is reeled and recast (setting #4).
+4. **Auto Reset** — a hook idle past the Reset Timeout (20 s = 400 ticks by default) is
+   reeled and recast (settings #3, #4).
+5. **Sea creature detection** — within 60 ticks (3 s) of the reel, a newly arrived living
+   entity within 8 blocks of the bobber spot is taken as this catch's creature (nearest
+   wins). Humanoid creatures (Banshee, Frog Man, Alligator, the sharks, the Spooky set, ...)
+   render as synthetic player entities on Hypixel; the mod recognises them through its
+   **full water/lava sea creature name list from the official wiki**, plus the tab list (level prefixes are deliberately ignored — real SkyBlock players
+   carry a level before their name too), so actual players are never targeted. The fight
+   stops when
+   the creature is killed by someone else, knocked out of range, or survives 20 seconds.
 
 ---
 
@@ -328,6 +419,16 @@ behaviour was removed entirely.
 
 **Q5: Cast-and-instant-reel loop?**
 Raise Throw Delay to 15–20 ticks or fish on a steadier connection.
+
+**Q6: Do humanoid sea creatures (Banshee / Frog Man / Alligator / sharks / the Spooky set) get attacked?**
+Yes. They appear as player-shaped entities on the server; the mod tells real players apart
+via the full wiki sea creature name list and the tab list, so they are detected and fought
+normally — and real players never are.
+
+**Q7: My weapon is a fishing weapon like the Soul Whip and it never gets used.**
+The Soul Whip and similar fishing weapons are fishing-rod items in the game, which older
+builds rejected as a plain rod. Any item in the weapon slot is now used as the weapon —
+as long as it is not the very rod currently held in the main hand.
 
 ---
 

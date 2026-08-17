@@ -1,5 +1,6 @@
 package dev.astrail.client.feature.macro.fishing;
 
+import dev.astrail.client.AstrailClient;
 import dev.astrail.client.api.event.ClientTickEvent;
 import dev.astrail.client.api.module.BackgroundRunning;
 import dev.astrail.client.api.module.DisableReason;
@@ -16,9 +17,13 @@ import dev.astrail.client.core.event.EventBus;
 import dev.astrail.client.core.module.AbstractModule;
 import dev.astrail.client.core.module.ModuleScope;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -33,7 +38,6 @@ import net.minecraft.world.phys.Vec3;
 
 public final class AutoFishModule extends AbstractModule implements BackgroundRunning {
     public static final String ID = "macro.auto_fish";
-    private static final int RESET_HOOK_TICKS = 20 * 20;
 
     /**
      * Ticks with a rod in hand, no hook in the water and no cast queued before
@@ -115,21 +119,76 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
      * catches; the marker itself spawns essentially on top of the bobber.
      */
     private static final double BITE_MARKER_RADIUS_SQUARED = 9.0D;
-    private static final int MONSTER_DETECTION_TICKS = 16;
+    /**
+     * Ticks after a bite during which a newly spawned sea creature counts as
+     * this catch's monster. Long enough for the server to spawn the creature
+     * after the reel; ownership is still kept exact by the spawn-radius check.
+     */
+    private static final int MONSTER_DETECTION_TICKS = 60;
+    /**
+     * A freshly caught sea creature spawns where the bobber was reeled in, so
+     * only a new living entity this close to the catch spot can be this
+     * catch's monster. Kept tight on purpose: a generous radius (or the old
+     * near-player check) picked up neighbouring players' creatures at shared
+     * ponds.
+     */
+    private static final double MONSTER_SPAWN_RANGE_SQUARED = 8.0D * 8.0D;
+    /**
+     * Loose keep-fighting envelope used once a creature is owned (detection
+     * uses the tighter spawn radius above).
+     */
     private static final double MONSTER_HOOK_RANGE_SQUARED = 14.0D * 14.0D;
     private static final double MONSTER_PLAYER_RANGE_SQUARED = 10.0D * 10.0D;
-    private static final int SKILL_USE_INTERVAL_TICKS = 4;
+    /**
+     * Hard cap on one attack: if the creature survives this long (or the
+     * server never tells us it died, e.g. someone else killed it), stop
+     * clicking and go back to fishing instead of draining mana forever.
+     */
+    private static final int ATTACK_TIMEOUT_TICKS = 20 * 20;
     private static final int ATTACK_AIM_TIMEOUT_TICKS = 30;
     private static final int ATTACK_VIEW_RESTORE_TIMEOUT_TICKS = 40;
     private static final double ATTACK_AIM_COSINE = Math.cos(Math.toRadians(3.0D));
 
+    /**
+     * Lowercase names of every sea creature in the official SkyBlock wiki water
+     * and lava lists, plus community-reported humanoid creatures. Humanoid
+     * creatures (Banshee, Frog Man, the Spooky set, the sharks, Alligator,
+     * ...) render as fake player entities on Hypixel, and some of those NPC
+     * players do appear in the tab list — the name is then the signal that
+     * overrides the tab-list check. Names shorter than five letters (e.g.
+     * "Yeti", "Ent") are never matched freely, so ordinary player names cannot
+     * false-positive; those creatures fall back to the tab-list check.
+     */
+    private static final Set<String> KNOWN_SEA_CREATURE_NAMES = Set.of(
+        "squid", "sea walker", "night squid", "sea guardian", "sea witch", "sea archer",
+        "rider of the deep", "catfish", "carrot king", "agarimoo", "sea leech",
+        "guardian defender", "deep sea protector", "water hydra", "oasis rabbit",
+        "oasis sheep", "water worm", "poisoned water worm", "abyssal miner",
+        "scarecrow", "nightmare", "werewolf", "phantom fisher", "grim reaper",
+        "frozen steve", "frosty", "grinch", "nutcracker", "yeti", "reindrake",
+        "nurse shark", "blue shark", "tiger shark", "great white shark",
+        "trash gobbler", "dumpster diver", "banshee", "bayou sludge", "alligator",
+        "titanoboa", "frog man", "snapping turtle", "blue ringed octopus", "wiki tiki",
+        "bogged", "wetwing", "tadgang", "ent", "the loch emperor", "nessie",
+        "flaming worm", "lava blaze", "lava pigman", "magma slug", "moogma",
+        "lava leech", "pyroclastic worm", "lava flame", "fire eel", "taurus",
+        "plhlegblast", "thunder", "lord jawbus", "fried chicken", "fireproof witch",
+        "fiery scuttler", "ragnarok", "stridersurfer",
+        "jumpin' jack", "jumping jack"
+    );
+
     private final BooleanSetting move = new BooleanSetting("move", "Random Movement", true);
     private final BooleanSetting alwaysSneak = new BooleanSetting("always_sneak", "Always Sneak", true);
     private final BooleanSetting autoReset = new BooleanSetting("auto_reset", "Auto Reset", true);
+    private final NumberSetting resetTimeout = new NumberSetting("reset_timeout_seconds", "Reset Timeout", 20.0D, 5.0D, 120.0D, 1.0D);
+    private final NumberSetting stuckLimit = new NumberSetting("stuck_limit", "Retry Limit", 5.0D, 1.0D, 50.0D, 1.0D);
     private final NumberSetting throwDelay = new NumberSetting("throw_delay_ticks", "Throw Delay", 10.0D, 1.0D, 30.0D, 1.0D);
     private final BooleanSetting viewLock = new BooleanSetting("view_lock", "View Lock", true);
     private final BooleanSetting rotate = new BooleanSetting("rotate", "Subtle Rotation", true);
     private final BooleanSetting autoAttack = new BooleanSetting("auto_attack", "Auto Attack", false);
+    private final NumberSetting attackCps = new NumberSetting("attack_cps", "Attack CPS", 5.0D, 1.0D, 10.0D, 0.5D);
+    private final BooleanSetting aimBeforeAttack = new BooleanSetting("aim_before_attack", "Aim Before Attack", true);
+    private final BooleanSetting singleUse = new BooleanSetting("single_use", "Single Use", false);
     private final NumberSetting weaponSlot = new NumberSetting("weapon_slot", "Weapon Slot", 1.0D, 1.0D, 9.0D, 1.0D);
 
     private final EventBus events;
@@ -191,11 +250,14 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
     private float attackOriginalYaw;
     private float attackOriginalPitch;
     private int attackAimTicks;
+    private int attackTicks;
     private int attackViewRestoreTicks;
     private boolean restoringAttackView;
     private boolean pendingCatchMovement;
     private int movementSafetyTicks;
     private InputLease jumpLease;
+    /** Consecutive stuck-hook resets with no catch in between. */
+    private int stuckStreak;
     private long lastIdleCastTick = Long.MIN_VALUE / 2L;
 
     public AutoFishModule(ClientServices services) {
@@ -207,13 +269,18 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
         move.presentation("Humanization", "Randomly shift your footing after a catch.");
         alwaysSneak.presentation("Safety", "Sneak for the full fishing session.");
         autoReset.presentation("Recovery", "Reset when the hook stalls or vanishes.");
+        resetTimeout.presentation("Recovery", "Seconds without a bite before the hook is recast.");
+        stuckLimit.presentation("Recovery", "Disable auto fishing after this many stuck retries.");
         throwDelay.presentation("Timing", "Ticks before recasting.");
-        viewLock.presentation("Casting", "Lock your camera to the rod landing spot before recasting. Disable to keep your view free.");
+        viewLock.presentation("Casting", "Re-aim at the water before recasting. Off: your view stays free.");
         rotate.presentation("Humanization", "Add subtle camera drift after a catch.");
-        autoAttack.presentation("Combat", "Use a weapon ability when a newly caught monster appears.");
+        autoAttack.presentation("Combat", "Use a weapon ability when a sea creature appears.");
+        attackCps.presentation("Combat", "Right-clicks per second while fighting.");
+        aimBeforeAttack.presentation("Combat", "Aim before attacking; off for teleport weapons (e.g. Hyperion).");
+        singleUse.presentation("Combat", "Ability once per sea creature, then stop. Saves mana.");
         weaponSlot.presentation("Combat", "Hotbar slot containing the ability weapon (1-9).");
-        addSettings(move, alwaysSneak, autoReset, throwDelay, viewLock, rotate,
-            autoAttack, weaponSlot);
+        addSettings(move, alwaysSneak, autoReset, resetTimeout, stuckLimit, throwDelay, viewLock, rotate,
+            autoAttack, attackCps, aimBeforeAttack, singleUse, weaponSlot);
     }
 
     @Override
@@ -276,6 +343,7 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
             if (detectMonster) beginMonsterDetection(event.client(), player, hook);
             reelAndQueueCast(player, throwDelay.intValue(), !detectMonster, hook.position());
             pendingCatchMovement = detectMonster;
+            stuckStreak = 0;
             lastBiteTick = tick;
         }
         biteLatched = bite;
@@ -289,8 +357,17 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
             interactions.useMainHand();
             noHookAge = 0;
         }
-        if (autoReset.get() && recastCountdown < 0 && hasHook && hookAge >= RESET_HOOK_TICKS) {
+        if (autoReset.get() && recastCountdown < 0 && hasHook && hookAge >= resetTimeout.intValue() * 20) {
             reelAndQueueCast(player, 20, false, hook.position());
+            stuckStreak++;
+            if (stuckStreak >= stuckLimit.intValue()) {
+                player.sendSystemMessage(Component.literal(
+                    "Astrail Fisher: " + stuckLimit.intValue() + " stuck hooks in a row - auto fishing disabled."
+                ).withStyle(ChatFormatting.RED));
+                disable(DisableReason.USER);
+                AstrailClient.runtime().config().markDirty();
+                return;
+            }
         }
 
         updateMotion(player);
@@ -308,8 +385,12 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
             }
         }
         if (movementSafetyTicks > 0) movementSafetyTicks--;
+        // Sneak only while a step is actually being taken (and for a short
+        // coast after it), not for the whole humanisation phase: the motion
+        // stage also runs when Random Movement is off or no safe direction
+        // exists, and holding sneak through it made the player crouch on
+        // every single catch.
         sneakLease.setPressed(alwaysSneak.get()
-            || motionTick >= 0
             || movementSafetyTicks > 0);
     }
 
@@ -351,14 +432,7 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
             }
             player.setYRot(attackOriginalYaw);
             player.setXRot(attackOriginalPitch);
-            rotationLease.clear();
-            restoringAttackView = false;
-            attackViewRestoreTicks = 0;
-            clearAttackTarget();
-            if (pendingCatchMovement) {
-                beginMotion(player);
-                pendingCatchMovement = false;
-            }
+            finishAttackViewRestore(player);
             return true;
         }
 
@@ -370,33 +444,58 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
                 return true;
             }
             var weapon = player.getInventory().getItem(attackHotbarSlot);
-            if (weapon.isEmpty() || weapon.is(Items.FISHING_ROD)) {
+            if (weapon.isEmpty()) {
                 boolean resumeMovement = pendingCatchMovement;
                 cancelAutoAttack(player);
                 if (resumeMovement) beginMotion(player);
                 return true;
             }
             Entity target = client.level.getEntity(attackTargetId);
-            if (!(target instanceof LivingEntity living) || !living.isAlive()) {
+            // isDeadOrDying also covers the death animation: when another
+            // player kills our creature the client may keep the entity around
+            // for a few ticks before removing it.
+            if (!(target instanceof LivingEntity living) || !living.isAlive() || living.isDeadOrDying()) {
+                beginAttackViewRestore(player);
+                return true;
+            }
+            // The creature can stay alive far outside weapon range after a
+            // knockback or a teleport; clicking blindly then just drains mana
+            // into the air, so the attack ends once it leaves the envelope.
+            if (!isAttackTargetAround(player, living)) {
+                beginAttackViewRestore(player);
+                return true;
+            }
+            // Belt and braces: whatever the server does with the creature
+            // (killed by a neighbour, stuck unkillable, never despawned),
+            // one attack can never click forever.
+            attackTicks++;
+            if (attackTicks > ATTACK_TIMEOUT_TICKS) {
                 beginAttackViewRestore(player);
                 return true;
             }
             player.getInventory().setSelectedSlot(attackHotbarSlot);
-            attackAimPoint = living.getEyePosition();
-            requestAttackLook(attackAimPoint);
-            attackAimTicks++;
-            if (!isLookingAt(player, attackAimPoint)
-                && attackAimTicks < ATTACK_AIM_TIMEOUT_TICKS) {
-                return true;
+            if (aimBeforeAttack.get()) {
+                attackAimPoint = living.getEyePosition();
+                requestAttackLook(attackAimPoint);
+                attackAimTicks++;
+                if (!isLookingAt(player, attackAimPoint)
+                    && attackAimTicks < ATTACK_AIM_TIMEOUT_TICKS) {
+                    return true;
+                }
+            } else {
+                attackAimTicks = 0;
             }
             if (skillUseCooldown > 0 && --skillUseCooldown > 0) return true;
             interactions.useMainHand();
-            skillUseCooldown = SKILL_USE_INTERVAL_TICKS;
+            skillUseCooldown = Math.max(1, (int) Math.round(20.0D / attackCps.get()));
             attackAimTicks = 0;
+            if (singleUse.get()) {
+                beginAttackViewRestore(player);
+            }
             return true;
         }
 
-        Entity monster = findCaughtMonster(client, player);
+        Entity monster = findCaughtMonster(client);
         if (monster != null && startAutoAttack(player, monster)) return true;
         monsterDetectionTicks--;
         if (monsterDetectionTicks <= 0) {
@@ -411,27 +510,106 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
         return true;
     }
 
-    private Entity findCaughtMonster(Minecraft client, LocalPlayer player) {
+    /**
+     * The sea creature this catch produced, or null.
+     *
+     * <p>Ownership is decided by <em>where</em> the creature appeared: a sea
+     * creature spawns at the spot the bobber was reeled in, so only a newly
+     * arrived living entity near that spot counts as ours. The old near-player
+     * radius pulled in neighbouring players' creatures at shared ponds, which
+     * is why attacks sometimes hit someone else's mob. Humanoid sea creatures
+     * (Banshee, Frog Man, ...) render as synthetic player entities on
+     * Hypixel, so real players are filtered out through the tab list instead
+     * of a blanket {@code instanceof Player} check that used to hide those
+     * creatures entirely.
+     *
+     * <p>When several candidates are in range the nearest one wins.
+     */
+    private Entity findCaughtMonster(Minecraft client) {
+        if (catchPosition == Vec3.ZERO) return null;
+        Entity closest = null;
+        double closestDistance = MONSTER_SPAWN_RANGE_SQUARED;
         for (Entity entity : client.level.entitiesForRendering()) {
-            if (!(entity instanceof LivingEntity living)
-                || !living.isAlive()
-                || entity instanceof Player
-                || entity instanceof ArmorStand
-                || preCatchLivingEntities.contains(entity.getId())) {
-                continue;
+            if (!(entity instanceof LivingEntity living) || !living.isAlive()) continue;
+            if (entity instanceof ArmorStand) continue;
+            if (isRealPlayer(client, entity)) continue;
+            if (preCatchLivingEntities.contains(entity.getId())) continue;
+            double distance = entity.position().distanceToSqr(catchPosition);
+            if (distance > MONSTER_SPAWN_RANGE_SQUARED) continue;
+            if (distance < closestDistance) {
+                closest = entity;
+                closestDistance = distance;
             }
-            boolean nearHook = entity.position().distanceToSqr(catchPosition) <= MONSTER_HOOK_RANGE_SQUARED;
-            boolean nearPlayer = entity.position().distanceToSqr(player.position()) <= MONSTER_PLAYER_RANGE_SQUARED;
-            if (nearHook || nearPlayer) return entity;
         }
-        return null;
+        return closest;
+    }
+
+    /**
+     * Whether the entity is a real player (the local player or anyone listed
+     * in the tab list). Hypixel renders humanoid sea creatures as fake player
+     * entities that never appear in the tab list, so the player-info check is
+     * what keeps them attackable while still never targeting actual players.
+     */
+    private static boolean isRealPlayer(Minecraft client, Entity entity) {
+        if (!(entity instanceof Player player)) return false;
+        if (player == client.player) return true;
+        // Humanoid sea creatures carry a Hypixel-style name tag ("[LvN]" level
+        // prefix or a known sea creature name). That overrides the tab list,
+        // because some NPC players do show up there.
+        if (looksLikeSeaCreature(player)) return false;
+        ClientPacketListener connection = client.getConnection();
+        if (connection == null) {
+            // No server connection (singleplayer): every player entity is real.
+            return true;
+        }
+        return connection.getPlayerInfo(player.getUUID()) != null;
+    }
+
+    /**
+     * Whether the player entity's name tag marks it as a sea creature NPC.
+     *
+     * <p>Only the known-name list is consulted. The "[LvN]" level prefix is
+     * deliberately <em>not</em> used: real SkyBlock players carry their own
+     * level in front of their name tag, so it cannot tell creatures apart
+     * from players. Names shorter than five letters (e.g. "Yeti") are never
+     * matched freely, so ordinary player names cannot false-positive.
+     */
+    private static boolean looksLikeSeaCreature(Player player) {
+        String plain = ChatFormatting.stripFormatting(player.getDisplayName().getString())
+            .toLowerCase(Locale.ROOT);
+        for (String name : KNOWN_SEA_CREATURE_NAMES) {
+            if (name.length() >= 5 && plain.contains(name)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether the current attack target is still close enough to fight.
+     *
+     * <p>The attack loop used to click blindly for as long as the target stayed
+     * alive; a sea creature knocked out of range (or a player teleported away
+     * by a Hyperion-style weapon) kept the loop going, so the mod right-clicked
+     * into the air and drained mana for nothing. The loop now ends as soon as
+     * the creature leaves the same envelope it was detected in.
+     */
+    private boolean isAttackTargetAround(LocalPlayer player, LivingEntity living) {
+        if (living.position().distanceToSqr(player.position()) <= MONSTER_PLAYER_RANGE_SQUARED) {
+            return true;
+        }
+        return catchPosition != Vec3.ZERO
+            && living.position().distanceToSqr(catchPosition) <= MONSTER_HOOK_RANGE_SQUARED;
     }
 
     private boolean startAutoAttack(LocalPlayer player, Entity monster) {
         int slot = weaponSlot.intValue() - 1;
         if (slot < 0 || slot > 8) return false;
+        // Fishing weapons like the Soul Whip are fishing-rod items too, so a
+        // rod check here used to reject them. The only rod that must be
+        // refused is the one already in hand: that slot is the fishing rod,
+        // not the configured weapon.
+        if (slot == player.getInventory().getSelectedSlot()) return false;
         var weapon = player.getInventory().getItem(slot);
-        if (weapon.isEmpty() || weapon.is(Items.FISHING_ROD)) return false;
+        if (weapon.isEmpty()) return false;
         previousHotbarSlot = player.getInventory().getSelectedSlot();
         attackHotbarSlot = slot;
         attackTargetId = monster.getId();
@@ -439,6 +617,7 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
         attackOriginalYaw = player.getYRot();
         attackOriginalPitch = player.getXRot();
         attackAimTicks = 0;
+        attackTicks = 0;
         attackViewRestoreTicks = 0;
         restoringAttackView = false;
         player.getInventory().setSelectedSlot(slot);
@@ -457,8 +636,27 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
         skillUseCooldown = 0;
         preCatchLivingEntities.clear();
         catchPosition = Vec3.ZERO;
-        restoringAttackView = true;
+        if (aimBeforeAttack.get()) {
+            restoringAttackView = true;
+            attackViewRestoreTicks = 0;
+            return;
+        }
+        // The camera was never moved, so there is nothing to restore: finish
+        // immediately instead of slewing the view back to a stale angle (which
+        // would yank the player's own look direction after a manual fight).
+        finishAttackViewRestore(player);
+    }
+
+    /** Shared tail of the attack-view restore: releases the lease and resumes fishing. */
+    private void finishAttackViewRestore(LocalPlayer player) {
+        rotationLease.clear();
+        restoringAttackView = false;
         attackViewRestoreTicks = 0;
+        clearAttackTarget();
+        if (pendingCatchMovement) {
+            beginMotion(player);
+            pendingCatchMovement = false;
+        }
     }
 
     private void requestAttackLook(Vec3 target) {
@@ -495,7 +693,7 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
         if (player != null && previousHotbarSlot >= 0 && previousHotbarSlot <= 8) {
             player.getInventory().setSelectedSlot(previousHotbarSlot);
         }
-        if (player != null && (attackTargetId >= 0 || restoringAttackView)) {
+        if (player != null && aimBeforeAttack.get() && (attackTargetId >= 0 || restoringAttackView)) {
             player.setYRot(attackOriginalYaw);
             player.setXRot(attackOriginalPitch);
         }
@@ -503,6 +701,7 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
         previousHotbarSlot = -1;
         attackHotbarSlot = -1;
         clearAttackTarget();
+        attackTicks = 0;
         restoringAttackView = false;
         attackViewRestoreTicks = 0;
         monsterDetectionTicks = 0;
@@ -985,6 +1184,7 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
         attackTargetId = -1;
         attackAimPoint = Vec3.ZERO;
         attackAimTicks = 0;
+        attackTicks = 0;
         attackViewRestoreTicks = 0;
         restoringAttackView = false;
         preCatchLivingEntities.clear();
@@ -992,6 +1192,7 @@ public final class AutoFishModule extends AbstractModule implements BackgroundRu
         pendingCatchMovement = false;
         movementSafetyTicks = 0;
         biteLatched = false;
+        stuckStreak = 0;
         lastBiteTick = Long.MIN_VALUE / 2L;
         lastIdleCastTick = Long.MIN_VALUE / 2L;
         reeledMarkerId = -1;
